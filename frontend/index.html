@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Urbano | NASA Space Apps</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header/Navbar -->
+    <nav class="navbar">
+      <div class="nav-content">
+        <div class="logo">
+          <i class="fas fa-globe-americas"></i>
+          <span>Simulador Urbano</span>
+        </div>
+        <div class="nav-links">
+          <a href="#" class="nav-link active">Início</a>
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="#" class="nav-link">Sobre</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="hero-title">Simulador de Crescimento Urbano Sustentável</h1>
+          <p class="hero-description">
+            Explore dados urbanos em tempo real, visualize cenários sustentáveis e 
+            planeje cidades mais inteligentes e saudáveis para o futuro.
+          </p>
+          <div class="hero-features">
+            <div class="feature">
+              <i class="fas fa-chart-line"></i>
+              <span>Dados em Tempo Real</span>
+            </div>
+            <div class="feature">
+              <i class="fas fa-leaf"></i>
+              <span>Indicadores Sustentáveis</span>
+            </div>
+            <div class="feature">
+              <i class="fas fa-map-marked-alt"></i>
+              <span>Visualização Interativa</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="globe-container">
+            <div class="globe">
+              <div class="globe-inner"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+      <div class="search-container">
+        <h2>Explore Dados Urbanos</h2>
+        <p>Selecione uma cidade para analisar indicadores de sustentabilidade</p>
+        
+        <div class="search-box">
+          <div class="search-input-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="cityInput" placeholder="Digite o nome da cidade..." autocomplete="off">
+            <ul id="suggestions" class="suggestions-list"></ul>
+          </div>
+          <button id="searchBtn" class="search-button">
+            <span>Explorar</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="popular-cities">
+          <p>Cidades populares:</p>
+          <div class="city-tags">
+            <span class="city-tag" data-city="Brasília">Brasília</span>
+            <span class="city-tag" data-city="São Paulo">São Paulo</span>
+            <span class="city-tag" data-city="Rio de Janeiro">Rio de Janeiro</span>
+            <span class="city-tag" data-city="Belo Horizonte">Belo Horizonte</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="features-container">
+        <h2>Como o Simulador Urbano Funciona</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3>Coleta de Dados</h3>
+            <p>Integração com APIs públicas para obter dados climáticos, de poluição e indicadores urbanos em tempo real.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-map"></i>
+            </div>
+            <h3>Visualização Interativa</h3>
+            <p>Mapas interativos com heatmaps de poluição, estações de monitoramento e dados georreferenciados.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>Análise de Cenários</h3>
+            <p>Simulações de crescimento urbano com projeções de sustentabilidade e recomendações personalizadas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <i class="fas fa-globe-americas"></i>
+          <span>Simulador Urbano</span>
+        </div>
+        <div class="footer-info">
+          <p>Desenvolvido para a NASA Space Apps Challenge 2024</p>
+          <div class="footer-links">
+            <a href="#"><i class="fab fa-github"></i></a>
+            <a href="#"><i class="fas fa-envelope"></i></a>
+            <a href="#"><i class="fas fa-file-alt"></i></a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
