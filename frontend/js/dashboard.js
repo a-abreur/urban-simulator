@@ -354,6 +354,7 @@ function changeBaseMap(mapType) {
 }
 
 // Atualizar camadas do mapa
+// Atualizar a função updateMapLayers para incluir a legenda
 function updateMapLayers() {
     // Limpar camadas existentes
     clearMapLayers();
@@ -383,6 +384,51 @@ function updateMapLayers() {
 
     if (activeLayers.has('temperatura')) {
         loadHeatIslands();
+        createHeatLegend(); // Adicionar legenda do heat
+    } else {
+        removeHeatLegend();
+    }
+}
+
+// Função para criar legenda do heat
+function createHeatLegend() {
+    let legend = document.getElementById('heat-legend');
+    if (!legend) {
+        legend = document.createElement('div');
+        legend.id = 'heat-legend';
+        legend.className = 'heat-legend';
+        legend.innerHTML = `
+            <h4>🌡️ Ilhas de Calor</h4>
+            <div class="heat-gradient"></div>
+            <div class="heat-labels">
+                <span>+1°C</span>
+                <span>+3°C</span>
+            </div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #90ee90"></span>
+                    <span>Baixa</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #ffd700"></span>
+                    <span>Média</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #ff4500"></span>
+                    <span>Alta</span>
+                </div>
+            </div>
+        `;
+        document.querySelector('.map-container').appendChild(legend);
+    }
+    legend.style.display = 'block';
+}
+
+// Função para remover legenda do heat
+function removeHeatLegend() {
+    const legend = document.getElementById('heat-legend');
+    if (legend) {
+        legend.style.display = 'none';
     }
 }
 
@@ -622,6 +668,7 @@ async function loadTrafficData() {
 }
 
 // Carregar ilhas de calor
+// Função para carregar ilhas de calor com efeito de heat circle
 async function loadHeatIslands() {
     const heatIslands = [
         { 
@@ -629,90 +676,263 @@ async function loadHeatIslands() {
             temp_diff: 2.8, 
             cobertura: "Asfalto", 
             vegetacao: 15, 
-            coords: [-15.7794, -47.8892] // 15°46'46"S 47°53'21"W
+            coords: [-15.7794, -47.8892],
+            intensidade: 0.9
         },
         { 
             area: "Setor Hoteleiro", 
             temp_diff: 2.2, 
             cobertura: "Concreto", 
             vegetacao: 20, 
-            coords: [-15.7617, -47.8794] // 15°45'42"S 47°52'46"W
+            coords: [-15.7617, -47.8794],
+            intensidade: 0.7
         },
         { 
             area: "Área Residencial", 
             temp_diff: 1.5, 
             cobertura: "Mista", 
             vegetacao: 35, 
-            coords: [-15.7486, -47.8942] // 15°44'55"S 47°53'39"W
+            coords: [-15.7486, -47.8942],
+            intensidade: 0.5
         },
         { 
             area: "Zona Mista", 
             temp_diff: 2.0, 
             cobertura: "Concreto/Asfalto", 
             vegetacao: 25, 
-            coords: [-15.7753, -47.8722] // 15°46'31"S 47°52'20"W
+            coords: [-15.7753, -47.8722],
+            intensidade: 0.6
         },
         { 
             area: "Bairro Popular", 
             temp_diff: 1.8, 
             cobertura: "Asfalto", 
             vegetacao: 40, 
-            coords: [-15.7231, -47.8800] // 15°43'23"S 47°52'48"W
+            coords: [-15.7231, -47.8800],
+            intensidade: 0.55
         },
         { 
             area: "Área Periférica", 
             temp_diff: 3.0, 
             cobertura: "Asfalto/Concreto", 
             vegetacao: 10, 
-            coords: [-15.8289, -47.9153] // 15°49'44"S 47°54'55"W
+            coords: [-15.8289, -47.9153],
+            intensidade: 1.0
         },
         { 
             area: "Parque Urbano", 
             temp_diff: 1.2, 
             cobertura: "Verde", 
             vegetacao: 60, 
-            coords: [-15.8064, -47.8869] // 15°48'23"S 47°53'13"W
+            coords: [-15.8064, -47.8869],
+            intensidade: 0.3
         },
         { 
             area: "Região Administrativa", 
             temp_diff: 2.4, 
             cobertura: "Mista", 
             vegetacao: 30, 
-            coords: [-15.8144, -47.9056] // 15°48'52"S 47°54'20"W
+            coords: [-15.8144, -47.9056],
+            intensidade: 0.8
         },
         { 
             area: "Zona Industrial", 
             temp_diff: 3.2, 
             cobertura: "Concreto/Asfalto", 
             vegetacao: 5, 
-            coords: [-15.7972, -47.9342] // 15°47'50"S 47°56'03"W
+            coords: [-15.7972, -47.9342],
+            intensidade: 1.0
         }
     ];
 
+    // Criar uma camada de heatmap para as ilhas de calor
+    const heatPoints = heatIslands.map(area => [
+        area.coords[0],
+        area.coords[1],
+        area.temp_diff * 10 // Intensidade baseada na diferença térmica
+    ]);
+
+    // Adicionar heatmap principal
+    heatLayer = L.heatLayer(heatPoints, {
+        radius: 35,
+        blur: 20,
+        maxZoom: 15,
+        gradient: {
+            0.1: 'blue',
+            0.3: 'cyan',
+            0.5: 'lime',
+            0.7: 'yellow',
+            0.9: 'orange',
+            1.0: 'red'
+        }
+    }).addTo(map);
+
+    // Adicionar marcadores com círculos de calor individuais
     heatIslands.forEach(area => {
-        const radius = area.temp_diff * 500;
-        const color = area.temp_diff > 2.5 ? 'red' : 
-                     area.temp_diff > 1.5 ? 'orange' : 'yellow';
-        
-        const circle = L.circle(area.coords, {
-            color: color,
-            fillColor: color,
-            fillOpacity: 0.3,
-            radius: radius
-        }).addTo(map);
-        
-        circle.bindPopup(`
-            <div class="heat-popup">
-                <h4>🔥 ${area.area}</h4>
-                <p><strong>Diferença térmica:</strong> +${area.temp_diff}°C</p>
-                <p><strong>Cobertura:</strong> ${area.cobertura}</p>
-                <p><strong>Vegetação:</strong> ${area.vegetacao}%</p>
-            </div>
-        `);
-        
-        currentMarkers.push(circle);
-    });
+        createHeatCircle(area);
+    });
 }
+
+// Função para criar círculos de calor individuais
+function createHeatCircle(area) {
+    const radius = area.temp_diff * 400; // Raio baseado na diferença térmica
+    
+    // Criar círculo com gradiente de calor
+    const heatCircle = L.circle(area.coords, {
+        radius: radius,
+        fillColor: getHeatColor(area.temp_diff),
+        color: getHeatColor(area.temp_diff),
+        fillOpacity: 0.4,
+        opacity: 0.6,
+        weight: 2,
+        className: 'heat-circle'
+    }).addTo(map);
+
+    // Adicionar efeito de pulso
+    addPulseEffect(heatCircle, area.temp_diff);
+
+    // Popup informativo
+    heatCircle.bindPopup(`
+        <div class="heat-popup">
+            <h4>🔥 ${area.area}</h4>
+            <div class="heat-indicator">
+                <div class="heat-level" style="background: ${getHeatColor(area.temp_diff)}">
+                    <span>+${area.temp_diff}°C</span>
+                </div>
+            </div>
+            <div class="heat-details">
+                <p><strong>🌡️ Diferença térmica:</strong> +${area.temp_diff}°C</p>
+                <p><strong>🏗️ Cobertura:</strong> ${area.cobertura}</p>
+                <p><strong>🌿 Vegetação:</strong> ${area.vegetacao}%</p>
+                <p><strong>🔥 Intensidade:</strong> ${getHeatIntensity(area.temp_diff)}</p>
+            </div>
+        </div>
+    `);
+
+    // Efeito hover
+    heatCircle.on('mouseover', function() {
+        this.setStyle({
+            fillOpacity: 0.7,
+            opacity: 0.9,
+            weight: 3
+        });
+    });
+
+    heatCircle.on('mouseout', function() {
+        this.setStyle({
+            fillOpacity: 0.4,
+            opacity: 0.6,
+            weight: 2
+        });
+    });
+
+    currentMarkers.push(heatCircle);
+}
+
+// Função para obter cor baseada na temperatura
+function getHeatColor(tempDiff) {
+    if (tempDiff >= 3.0) return '#ff0000'; // Vermelho - Muito quente
+    if (tempDiff >= 2.5) return '#ff4500'; // Laranja vermelho
+    if (tempDiff >= 2.0) return '#ff8c00'; // Laranja
+    if (tempDiff >= 1.5) return '#ffd700'; // Amarelo
+    if (tempDiff >= 1.0) return '#ffff00'; // Amarelo claro
+    return '#90ee90'; // Verde claro - Menos quente
+}
+
+// Função para obter intensidade textual
+function getHeatIntensity(tempDiff) {
+    if (tempDiff >= 3.0) return 'Muito Alta 🔥';
+    if (tempDiff >= 2.5) return 'Alta 🔥';
+    if (tempDiff >= 2.0) return 'Moderada-Alta 🔥';
+    if (tempDiff >= 1.5) return 'Moderada 🌡️';
+    if (tempDiff >= 1.0) return 'Baixa 🌡️';
+    return 'Muito Baixa 🌿';
+}
+
+// Função para adicionar efeito de pulso
+function addPulseEffect(circle, tempDiff) {
+    const pulseInterval = tempDiff > 2.5 ? 2000 : tempDiff > 1.5 ? 3000 : 4000;
+    
+    setInterval(() => {
+        circle.setStyle({
+            fillOpacity: 0.6,
+            opacity: 0.8
+        });
+        
+        setTimeout(() => {
+            circle.setStyle({
+                fillOpacity: 0.4,
+                opacity: 0.6
+            });
+        }, 1000);
+    }, pulseInterval);
+}
+
+// Adicione este CSS para estilizar os popups
+const heatStyle = document.createElement('style');
+heatStyle.textContent = `
+    .heat-popup {
+        min-width: 250px;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .heat-popup h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 1.1em;
+    }
+    
+    .heat-indicator {
+        margin: 10px 0;
+        text-align: center;
+    }
+    
+    .heat-level {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1em;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .heat-details {
+        margin-top: 10px;
+    }
+    
+    .heat-details p {
+        margin: 5px 0;
+        font-size: 0.9em;
+        color: #555;
+    }
+    
+    .heat-circle {
+        animation: heatPulse 3s infinite;
+    }
+    
+    @keyframes heatPulse {
+        0% {
+            filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.3));
+        }
+        50% {
+            filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.6));
+        }
+        100% {
+            filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.3));
+        }
+    }
+    
+    /* Estilos para modo escuro */
+    [data-theme="dark"] .heat-popup h4 {
+        color: #e2e8f0;
+    }
+    
+    [data-theme="dark"] .heat-details p {
+        color: #a0aec0;
+    }
+`;
+document.head.appendChild(heatStyle);
 
 // Mostrar informações da estação
 function showStationInfo(station) {

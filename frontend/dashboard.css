@@ -884,3 +884,113 @@ input:checked + .theme-slider .moon-icon {
     order: -1;
   }
 }
+
+
+/* Estilos para as Ilhas de Calor */
+.heat-circle {
+  mix-blend-mode: multiply;
+  transition: all 0.3s ease;
+}
+
+.heat-circle:hover {
+  filter: brightness(1.2) drop-shadow(0 0 10px rgba(255, 100, 0, 0.8));
+}
+
+/* Legenda das Ilhas de Calor */
+.heat-legend {
+  position: absolute;
+  bottom: 120px;
+  left: 1rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1000;
+  max-width: 200px;
+  border: 1px solid var(--border-color);
+}
+
+.heat-legend h4 {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.heat-gradient {
+  height: 10px;
+  background: linear-gradient(90deg, #90ee90, #ffff00, #ffd700, #ff8c00, #ff4500, #ff0000);
+  border-radius: 5px;
+  margin: 0.5rem 0;
+}
+
+.heat-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+/* Popup customizado para calor */
+.heat-popup .leaflet-popup-content-wrapper {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.heat-popup .leaflet-popup-tip {
+  background: var(--card-bg);
+}
+
+.heat-indicator {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.heat-level {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.heat-details {
+  margin-top: 10px;
+}
+
+.heat-details p {
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.heat-details strong {
+  color: var(--text-primary);
+}
+
+/* Animações de pulso para calor */
+@keyframes heatPulse {
+  0% {
+      filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.3));
+  }
+  50% {
+      filter: drop-shadow(0 0 20px rgba(255, 100, 0, 0.8));
+  }
+  100% {
+      filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.3));
+  }
+}
+
+.heat-pulse {
+  animation: heatPulse 3s infinite;
+}
