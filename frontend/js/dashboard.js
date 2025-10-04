@@ -1,10 +1,8 @@
-// dashboard.js - Simulador de Crescimento Urbano Sustentável - Versão Completa
+// dashboard.js - Dashboard Urbano com Dark Mode
 
 // Configuração e estado global
 const API_BASE_URL = "http://localhost:5000/api";
-const map = L.map('map').setView([-15.8267, -47.9218], 12);
-
-// Variáveis globais
+let map;
 let heatLayer = null;
 let currentMarkers = [];
 let activeLayers = new Set(['clima', 'estacoes']);
@@ -14,6 +12,8 @@ let analysisMode = false;
 
 // Inicialização do mapa
 function initializeMap() {
+    map = L.map('map').setView([-15.8267, -47.9218], 12);
+    
     // Mapa base padrão
     baseMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
@@ -21,6 +21,35 @@ function initializeMap() {
 
     // Adicionar grupo de desenho
     map.addLayer(drawnItems);
+}
+
+// Inicializar controle de modo escuro
+function initializeDarkModeToggle() {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const themeLabel = document.getElementById('theme-label');
+    
+    // Carregar preferência salva
+    const isDarkMode = localStorage.getItem('dark-mode') === 'true';
+    darkModeToggle.checked = isDarkMode;
+    updateTheme(isDarkMode, themeLabel);
+    
+    // Event listener para o toggle
+    darkModeToggle.addEventListener('change', function() {
+        const isDark = this.checked;
+        updateTheme(isDark, themeLabel);
+        localStorage.setItem('dark-mode', isDark);
+    });
+}
+
+// Atualizar tema baseado no estado do toggle
+function updateTheme(isDark, themeLabel) {
+    if (isDark) {
+        document.body.setAttribute('data-theme', 'dark');
+        themeLabel.textContent = 'Modo Escuro';
+    } else {
+        document.body.removeAttribute('data-theme');
+        themeLabel.textContent = 'Modo Claro';
+    }
 }
 
 // Inicializar controles da UI
@@ -69,6 +98,9 @@ function initializeUIControls() {
         changeBaseMap(e.target.value);
     });
 
+    // Inicializar toggle do modo escuro
+    initializeDarkModeToggle();
+
     // Ferramentas de análise
     initializeAnalysisTools();
     
@@ -99,7 +131,6 @@ function initializeSimulation() {
     setupSimulationSliders();
 
     // Eventos do modal
-    document.getElementById('simulation-btn').addEventListener('click', openSimulationModal);
     closeBtn.addEventListener('click', closeSimulationModal);
     cancelBtn.addEventListener('click', closeSimulationModal);
     runBtn.addEventListener('click', runSimulation);
@@ -131,7 +162,6 @@ function setupSimulationSliders() {
 
 // Atualizar impacto da simulação
 function updateSimulationImpact() {
-    // Cálculo simplificado do impacto
     const greenAreas = parseInt(document.getElementById('green-areas').value);
     const publicTransport = parseInt(document.getElementById('public-transport').value);
     const pollutionReduction = parseInt(document.getElementById('pollution-reduction').value);
@@ -207,7 +237,7 @@ async function analyzeArea(layer) {
     const area = bounds.getNorthEast().distanceTo(bounds.getSouthWest());
 
     try {
-        // Simular análise (em produção, chamar API)
+        // Simular análise
         const analysis = await simulateAreaAnalysis(center, area);
         showAnalysisResults(analysis, layer);
     } catch (error) {
@@ -218,7 +248,6 @@ async function analyzeArea(layer) {
 
 // Simular análise de área
 async function simulateAreaAnalysis(center, area) {
-    // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     return {
@@ -355,14 +384,6 @@ function updateMapLayers() {
     if (activeLayers.has('temperatura')) {
         loadHeatIslands();
     }
-
-    if (activeLayers.has('recursos')) {
-        loadNaturalResources();
-    }
-
-    if (activeLayers.has('saneamento')) {
-        loadSanitationData();
-    }
 }
 
 // Limpar camadas do mapa
@@ -399,7 +420,7 @@ async function loadCityData(city = "Brasília") {
         document.getElementById('current-city').textContent = city;
         document.getElementById('update-time').textContent = 'Atualizando...';
 
-        // Simular carregamento de dados (substituir por chamadas reais à API)
+        // Simular carregamento de dados
         const [weatherData, pollutionData, stationsData] = await Promise.all([
             simulateAPICall('clima'),
             simulateAPICall('poluicao'),
@@ -603,9 +624,69 @@ async function loadTrafficData() {
 // Carregar ilhas de calor
 async function loadHeatIslands() {
     const heatIslands = [
-        { area: "Centro Comercial", temp_diff: 2.8, cobertura: "Asfalto", vegetacao: 15 },
-        { area: "Setor Hoteleiro", temp_diff: 2.2, cobertura: "Concreto", vegetacao: 20 },
-        { area: "Área Residencial", temp_diff: 1.5, cobertura: "Mista", vegetacao: 35 }
+        { 
+            area: "Centro Comercial", 
+            temp_diff: 2.8, 
+            cobertura: "Asfalto", 
+            vegetacao: 15, 
+            coords: [-15.7794, -47.8892] // 15°46'46"S 47°53'21"W
+        },
+        { 
+            area: "Setor Hoteleiro", 
+            temp_diff: 2.2, 
+            cobertura: "Concreto", 
+            vegetacao: 20, 
+            coords: [-15.7617, -47.8794] // 15°45'42"S 47°52'46"W
+        },
+        { 
+            area: "Área Residencial", 
+            temp_diff: 1.5, 
+            cobertura: "Mista", 
+            vegetacao: 35, 
+            coords: [-15.7486, -47.8942] // 15°44'55"S 47°53'39"W
+        },
+        { 
+            area: "Zona Mista", 
+            temp_diff: 2.0, 
+            cobertura: "Concreto/Asfalto", 
+            vegetacao: 25, 
+            coords: [-15.7753, -47.8722] // 15°46'31"S 47°52'20"W
+        },
+        { 
+            area: "Bairro Popular", 
+            temp_diff: 1.8, 
+            cobertura: "Asfalto", 
+            vegetacao: 40, 
+            coords: [-15.7231, -47.8800] // 15°43'23"S 47°52'48"W
+        },
+        { 
+            area: "Área Periférica", 
+            temp_diff: 3.0, 
+            cobertura: "Asfalto/Concreto", 
+            vegetacao: 10, 
+            coords: [-15.8289, -47.9153] // 15°49'44"S 47°54'55"W
+        },
+        { 
+            area: "Parque Urbano", 
+            temp_diff: 1.2, 
+            cobertura: "Verde", 
+            vegetacao: 60, 
+            coords: [-15.8064, -47.8869] // 15°48'23"S 47°53'13"W
+        },
+        { 
+            area: "Região Administrativa", 
+            temp_diff: 2.4, 
+            cobertura: "Mista", 
+            vegetacao: 30, 
+            coords: [-15.8144, -47.9056] // 15°48'52"S 47°54'20"W
+        },
+        { 
+            area: "Zona Industrial", 
+            temp_diff: 3.2, 
+            cobertura: "Concreto/Asfalto", 
+            vegetacao: 5, 
+            coords: [-15.7972, -47.9342] // 15°47'50"S 47°56'03"W
+        }
     ];
 
     heatIslands.forEach(area => {
@@ -613,7 +694,7 @@ async function loadHeatIslands() {
         const color = area.temp_diff > 2.5 ? 'red' : 
                      area.temp_diff > 1.5 ? 'orange' : 'yellow';
         
-        const circle = L.circle([-15.78 + Math.random() * 0.1, -47.90 + Math.random() * 0.1], {
+        const circle = L.circle(area.coords, {
             color: color,
             fillColor: color,
             fillOpacity: 0.3,
@@ -630,19 +711,7 @@ async function loadHeatIslands() {
         `);
         
         currentMarkers.push(circle);
-    });
-}
-
-// Carregar recursos naturais
-async function loadNaturalResources() {
-    // Implementar carregamento de recursos naturais
-    console.log("Carregando recursos naturais...");
-}
-
-// Carregar dados de saneamento
-async function loadSanitationData() {
-    // Implementar carregamento de dados de saneamento
-    console.log("Carregando dados de saneamento...");
+    });
 }
 
 // Mostrar informações da estação
@@ -674,6 +743,36 @@ function showStationInfo(station) {
     `;
     
     document.getElementById('info-panel').classList.add('active');
+}
+
+// Modal de simulação
+function openSimulationModal() {
+    document.getElementById('simulation-modal').classList.add('active');
+}
+
+function closeSimulationModal() {
+    document.getElementById('simulation-modal').classList.remove('active');
+}
+
+async function runSimulation() {
+    showNotification('Executando simulação...', 'info');
+    
+    // Coletar parâmetros
+    const params = {
+        green_areas: parseInt(document.getElementById('green-areas').value),
+        public_transport: parseInt(document.getElementById('public-transport').value),
+        pollution_reduction: parseInt(document.getElementById('pollution-reduction').value)
+    };
+
+    // Simular processamento
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // Atualizar score de sustentabilidade
+    const newScore = Math.min(100, 72 + (params.green_areas * 0.1) + (params.public_transport * 0.15) + (params.pollution_reduction * 0.2));
+    document.getElementById('sustainability-score').textContent = Math.round(newScore);
+
+    closeSimulationModal();
+    showNotification('Simulação concluída! Score atualizado.', 'success');
 }
 
 // Gerar relatório
@@ -718,36 +817,6 @@ function startComparison() {
     showNotification('Funcionalidade de comparação em desenvolvimento.', 'info');
 }
 
-// Modal de simulação
-function openSimulationModal() {
-    document.getElementById('simulation-modal').classList.add('active');
-}
-
-function closeSimulationModal() {
-    document.getElementById('simulation-modal').classList.remove('active');
-}
-
-async function runSimulation() {
-    showNotification('Executando simulação...', 'info');
-    
-    // Coletar parâmetros
-    const params = {
-        green_areas: parseInt(document.getElementById('green-areas').value),
-        public_transport: parseInt(document.getElementById('public-transport').value),
-        pollution_reduction: parseInt(document.getElementById('pollution-reduction').value)
-    };
-
-    // Simular processamento
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Atualizar score de sustentabilidade
-    const newScore = Math.min(100, 72 + (params.green_areas * 0.1) + (params.public_transport * 0.15) + (params.pollution_reduction * 0.2));
-    document.getElementById('sustainability-score').textContent = Math.round(newScore);
-
-    closeSimulationModal();
-    showNotification('Simulação concluída! Score atualizado.', 'success');
-}
-
 // Funções utilitárias
 function formatIndicatorName(key) {
     const names = {
@@ -762,7 +831,7 @@ function formatIndicatorName(key) {
 }
 
 function showNotification(message, type = 'info') {
-    // Implementar sistema de notificações
+    // Implementação básica de notificação
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
@@ -810,107 +879,18 @@ function loadMockData() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Inicializando Simulador de Crescimento Urbano Sustentável...");
+    console.log("Inicializando Dashboard Urbano...");
+    
+    // Carregar cidade selecionada
+    const selectedCity = localStorage.getItem('selectedCity') || 'Brasília';
     
     initializeMap();
     initializeUIControls();
-    loadCityData("Brasília");
+    loadCityData(selectedCity);
     
     // Atualização automática a cada 5 minutos
     setInterval(() => {
-        loadCityData("Brasília");
+        const currentCity = document.getElementById('current-city').textContent;
+        loadCityData(currentCity);
     }, 300000);
 });
-
-
-
-// dashboard.js - Adicionar funcionalidade do modo escuro
-
-// Inicializar toggle do modo escuro
-function initializeDarkModeToggle() {
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-    const themeLabel = document.getElementById('theme-label');
-    
-    // Carregar preferência salva
-    const isDarkMode = localStorage.getItem('dark-mode') === 'true';
-    darkModeToggle.checked = isDarkMode;
-    updateTheme(isDarkMode, themeLabel);
-    
-    // Event listener para o toggle
-    darkModeToggle.addEventListener('change', function() {
-        const isDark = this.checked;
-        updateTheme(isDark, themeLabel);
-        localStorage.setItem('dark-mode', isDark);
-    });
-}
-
-// Atualizar tema baseado no estado do toggle
-function updateTheme(isDark, themeLabel) {
-    if (isDark) {
-        document.body.setAttribute('data-theme', 'dark');
-        themeLabel.textContent = 'Modo Escuro';
-    } else {
-        document.body.removeAttribute('data-theme');
-        themeLabel.textContent = 'Modo Claro';
-    }
-}
-
-// Na função de inicialização, adicione:
-function initializeUIControls() {
-    // ... código existente ...
-    
-    // Controles de zoom
-    document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
-    document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
-    
-    // Centralizar em Brasília
-    document.getElementById('current-location').addEventListener('click', () => {
-        map.setView([-15.8267, -47.9218], 12);
-    });
-
-    // Tela cheia
-    document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
-
-    // Fechar painéis
-    document.getElementById('close-info').addEventListener('click', () => {
-        document.getElementById('info-panel').classList.remove('active');
-    });
-
-    // Controles de camadas
-    document.querySelectorAll('.layer-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const layer = this.dataset.layer;
-            const isActive = this.classList.toggle('active');
-            
-            // Atualizar ícone
-            const icon = this.querySelector('.status-icon');
-            icon.className = isActive ? 'fas fa-check status-icon' : 'fas fa-plus status-icon';
-            
-            // Atualizar conjunto de camadas ativas
-            if (isActive) {
-                activeLayers.add(layer);
-            } else {
-                activeLayers.delete(layer);
-            }
-            
-            updateMapLayers();
-            updateSidebarSections();
-        });
-    });
-
-    // Controle de mapa base
-    document.getElementById('base-map-select').addEventListener('change', function(e) {
-        changeBaseMap(e.target.value);
-    });
-
-    // NOVO: Inicializar toggle do modo escuro
-    initializeDarkModeToggle();
-
-    // Ferramentas de análise
-    initializeAnalysisTools();
-    
-    // Simulação
-    initializeSimulation();
-}
-
-
