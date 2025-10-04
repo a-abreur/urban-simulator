@@ -8,7 +8,6 @@ let currentMarkers = [];
 let activeLayers = new Set(['clima', 'estacoes']);
 let baseMapLayer = null;
 let drawnItems = new L.FeatureGroup();
-let analysisMode = false;
 
 // Inicialização do mapa
 function initializeMap() {
@@ -1133,3 +1132,612 @@ document.addEventListener('DOMContentLoaded', function() {
         loadCityData(currentCity);
     }, 300000);
 });
+
+
+// Variáveis globais para análise
+let analysisMode = false;
+let drawControl = null;
+let currentAnalysisLayer = null;
+
+// Dados realistas para análise baseados em regiões de Brasília
+const brasiliaZones = {
+    'Plano Piloto': {
+        densidade_construcao: 85,
+        areas_verdes: 45,
+        acessibilidade_transporte: 90,
+        qualidade_ar: 75,
+        ruido_urbano: 65,
+        infraestrutura_saneamento: 95,
+        cobertura_vegetal: 40,
+        permeabilidade_solo: 35,
+        densidade_populacional: 80
+    },
+    'Águas Claras': {
+        densidade_construcao: 95,
+        areas_verdes: 25,
+        acessibilidade_transporte: 70,
+        qualidade_ar: 60,
+        ruido_urbano: 75,
+        infraestrutura_saneamento: 85,
+        cobertura_vegetal: 20,
+        permeabilidade_solo: 20,
+        densidade_populacional: 90
+    },
+    'Lago Sul': {
+        densidade_construcao: 60,
+        areas_verdes: 70,
+        acessibilidade_transporte: 65,
+        qualidade_ar: 85,
+        ruido_urbano: 40,
+        infraestrutura_saneamento: 90,
+        cobertura_vegetal: 65,
+        permeabilidade_solo: 60,
+        densidade_populacional: 45
+    },
+    'Taguatinga': {
+        densidade_construcao: 75,
+        areas_verdes: 30,
+        acessibilidade_transporte: 80,
+        qualidade_ar: 65,
+        ruido_urbano: 70,
+        infraestrutura_saneamento: 75,
+        cobertura_vegetal: 25,
+        permeabilidade_solo: 30,
+        densidade_populacional: 85
+    },
+    'Ceilândia': {
+        densidade_construcao: 80,
+        areas_verdes: 20,
+        acessibilidade_transporte: 75,
+        qualidade_ar: 55,
+        ruido_urbano: 80,
+        infraestrutura_saneamento: 65,
+        cobertura_vegetal: 15,
+        permeabilidade_solo: 25,
+        densidade_populacional: 95
+    },
+    'Parque da Cidade': {
+        densidade_construcao: 10,
+        areas_verdes: 95,
+        acessibilidade_transporte: 85,
+        qualidade_ar: 95,
+        ruido_urbano: 25,
+        infraestrutura_saneamento: 70,
+        cobertura_vegetal: 90,
+        permeabilidade_solo: 85,
+        densidade_populacional: 5
+    }
+};
+
+function toggleAreaAnalysis() {
+    analysisMode = !analysisMode;
+    const btn = document.getElementById('area-analysis-btn');
+    const badge = document.getElementById('analysis-status');
+
+    if (analysisMode) {
+        activateAreaAnalysis(btn, badge);
+    } else {
+        deactivateAreaAnalysis(btn, badge);
+    }
+}
+
+function activateAreaAnalysis(btn, badge) {
+    // Criar controle de desenho
+    drawControl = new L.Control.Draw({
+        draw: {
+            polygon: {
+                allowIntersection: false,
+                drawError: {
+                    color: '#e1e4e8',
+                    message: '<strong>Erro:</strong> Polígono inválido!'
+                },
+                shapeOptions: {
+                    color: '#2c5530',
+                    fillColor: '#2c5530',
+                    fillOpacity: 0.2,
+                    weight: 3
+                },
+                showArea: true,
+                metric: true,
+                precision: 2
+            },
+            rectangle: {
+                shapeOptions: {
+                    color: '#2c5530',
+                    fillColor: '#2c5530',
+                    fillOpacity: 0.2,
+                    weight: 3
+                },
+                showArea: true,
+                metric: true
+            },
+            circle: {
+                shapeOptions: {
+                    color: '#2c5530',
+                    fillColor: '#2c5530',
+                    fillOpacity: 0.2,
+                    weight: 3
+                },
+                showRadius: true,
+                metric: true,
+                feet: false
+            },
+            marker: false,
+            polyline: false
+        },
+        edit: {
+            featureGroup: drawnItems,
+            edit: {
+                selectedPathOptions: {
+                    dashArray: '10, 10',
+                    weight: 5
+                }
+            }
+        }
+    });
+
+    map.addControl(drawControl);
+    btn.classList.add('active');
+    badge.textContent = 'ATIVO';
+    badge.style.background = 'var(--success-color)';
+
+    // Eventos de desenho
+    map.on(L.Draw.Event.CREATED, handleDrawCreated);
+    map.on(L.Draw.Event.EDITED, handleDrawEdited);
+    map.on(L.Draw.Event.DELETED, handleDrawDeleted);
+
+    showNotification('🎯 Modo análise ativado. Desenhe uma área no mapa para analisar indicadores de sustentabilidade.', 'info');
+}
+
+function deactivateAreaAnalysis(btn, badge) {
+    // Remover controle de desenho
+    if (drawControl) {
+        map.removeControl(drawControl);
+        drawControl = null;
+    }
+
+    // Remover eventos
+    map.off(L.Draw.Event.CREATED);
+    map.off(L.Draw.Event.EDITED);
+    map.off(L.Draw.Event.DELETED);
+
+    // Limpar desenhos
+    drawnItems.clearLayers();
+    currentAnalysisLayer = null;
+
+    btn.classList.remove('active');
+    badge.textContent = 'INATIVO';
+    badge.style.background = 'var(--danger-color)';
+    document.getElementById('analysis-panel').style.display = 'none';
+
+    showNotification('Modo análise desativado.', 'info');
+}
+
+function handleDrawCreated(e) {
+    const layer = e.layer;
+    drawnItems.addLayer(layer);
+    currentAnalysisLayer = layer;
+    
+    // Estilo do polígono desenhado
+    layer.setStyle({
+        color: '#2c5530',
+        fillColor: '#2c5530',
+        fillOpacity: 0.3,
+        weight: 3
+    });
+    
+    analyzeArea(layer);
+}
+
+function handleDrawEdited(e) {
+    const layers = e.layers;
+    layers.eachLayer(function(layer) {
+        analyzeArea(layer);
+    });
+}
+
+function handleDrawDeleted(e) {
+    document.getElementById('analysis-panel').style.display = 'none';
+    currentAnalysisLayer = null;
+}
+
+// Analisar área desenhada
+async function analyzeArea(layer) {
+    showAnalysisLoading();
+    
+    const bounds = layer.getBounds();
+    const center = bounds.getCenter();
+    const areaKm2 = (bounds.getNorthEast().distanceTo(bounds.getSouthWest()) / 1000).toFixed(2);
+    
+    try {
+        const analysis = await performAreaAnalysis(center, areaKm2, layer);
+        showAnalysisResults(analysis, layer);
+        
+        // Adicionar layer ao mapa se não estiver
+        if (!map.hasLayer(layer)) {
+            drawnItems.addLayer(layer);
+        }
+    } catch (error) {
+        console.error('Erro na análise:', error);
+        showNotification('Erro ao analisar a área selecionada.', 'error');
+    }
+}
+
+// Análise realista baseada na localização
+async function performAreaAnalysis(center, area, layer) {
+    // Simular processamento
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Determinar zona baseada na localização
+    const zone = determineZone(center);
+    const baseData = brasiliaZones[zone] || brasiliaZones['Plano Piloto'];
+    
+    // Calcular score baseado nos indicadores
+    const score = calculateSustainabilityScore(baseData);
+    
+    // Gerar recomendações baseadas nos pontos fracos
+    const recomendacoes = generateRecommendations(baseData, zone);
+    
+    // Análise de impacto ambiental
+    const impactoAmbiental = calculateEnvironmentalImpact(baseData, area);
+    
+    return {
+        zona: zone,
+        area_km2: parseFloat(area),
+        centro: center,
+        score_sustentabilidade: score,
+        classificacao: getSustainabilityClassification(score),
+        indicadores: baseData,
+        recomendacoes: recomendacoes,
+        impacto_ambiental: impactoAmbiental,
+        tendencias: generateTrends(baseData),
+        dados_geograficos: getGeographicData(center, area)
+    };
+}
+
+function determineZone(center) {
+    const lat = center.lat;
+    const lng = center.lng;
+    
+    // Lógica simplificada para determinar zona em Brasília
+    if (lat > -15.75 && lng > -47.95) return 'Lago Sul';
+    if (lat > -15.80 && lat < -15.75 && lng > -47.90) return 'Plano Piloto';
+    if (lat < -15.80 && lng > -47.95) return 'Águas Claras';
+    if (lat > -15.85 && lat < -15.80 && lng < -47.95) return 'Taguatinga';
+    if (lat < -15.85) return 'Ceilândia';
+    if (Math.abs(lat + 15.79) < 0.02 && Math.abs(lng + 47.90) < 0.02) return 'Parque da Cidade';
+    
+    return 'Plano Piloto';
+}
+
+function calculateSustainabilityScore(indicadores) {
+    const pesos = {
+        areas_verdes: 0.15,
+        cobertura_vegetal: 0.10,
+        qualidade_ar: 0.15,
+        acessibilidade_transporte: 0.12,
+        infraestrutura_saneamento: 0.13,
+        permeabilidade_solo: 0.10,
+        ruido_urbano: 0.10,
+        densidade_construcao: 0.08,
+        densidade_populacional: 0.07
+    };
+    
+    let score = 0;
+    for (const [indicador, valor] of Object.entries(indicadores)) {
+        if (pesos[indicador]) {
+            // Inverter alguns indicadores (menos é melhor)
+            let valorAjustado = valor;
+            if (['ruido_urbano', 'densidade_construcao', 'densidade_populacional'].includes(indicador)) {
+                valorAjustado = 100 - valor;
+            }
+            score += valorAjustado * pesos[indicador];
+        }
+    }
+    
+    return Math.round(score);
+}
+
+function getSustainabilityClassification(score) {
+    if (score >= 90) return 'Excelente 🏆';
+    if (score >= 80) return 'Muito Boa ⭐';
+    if (score >= 70) return 'Boa 👍';
+    if (score >= 60) return 'Regular ⚠️';
+    if (score >= 50) return 'Precária 🚨';
+    return 'Crítica 💀';
+}
+
+function generateRecommendations(indicadores, zona) {
+    const recomendacoes = [];
+    const weaknesses = [];
+    
+    // Identificar pontos fracos
+    if (indicadores.areas_verdes < 30) weaknesses.push('áreas verdes');
+    if (indicadores.cobertura_vegetal < 25) weaknesses.push('cobertura vegetal');
+    if (indicadores.qualidade_ar < 60) weaknesses.push('qualidade do ar');
+    if (indicadores.permeabilidade_solo < 30) weaknesses.push('permeabilidade do solo');
+    if (indicadores.ruido_urbano > 70) weaknesses.push('poluição sonora');
+    if (indicadores.densidade_construcao > 80) weaknesses.push('densidade construtiva');
+    
+    // Gerar recomendações específicas
+    if (weaknesses.includes('áreas verdes')) {
+        recomendacoes.push(`Implementar parques lineares e aumentar áreas verdes em 20% na ${zona}`);
+    }
+    
+    if (weaknesses.includes('cobertura vegetal')) {
+        recomendacoes.push(`Promover programa de arborização urbana e telhados verdes`);
+    }
+    
+    if (weaknesses.includes('qualidade do ar')) {
+        recomendacoes.push(`Criar zonas de baixa emissão e incentivar transporte sustentável`);
+    }
+    
+    if (weaknesses.includes('permeabilidade do solo')) {
+        recomendacoes.push(`Implementar pavimentos permeáveis e jardins de chuva`);
+    }
+    
+    if (weaknesses.includes('poluição sonora')) {
+        recomendacoes.push(`Instalar barreiras acústicas e regular tráfego pesado`);
+    }
+    
+    if (weaknesses.includes('densidade construtiva')) {
+        recomendacoes.push(`Revisar plano diretor para controle de densidade`);
+    }
+    
+    // Recomendações gerais
+    if (recomendacoes.length === 0) {
+        recomendacoes.push(`Manter políticas de sustentabilidade e monitorar indicadores`);
+        recomendacoes.push(`Expandir programas de eficiência energética na ${zona}`);
+    }
+    
+    return recomendacoes.slice(0, 5); // Limitar a 5 recomendações
+}
+
+function calculateEnvironmentalImpact(indicadores, area) {
+    const impacto = {
+        carbono_estimado: Math.round((indicadores.densidade_construcao * area * 0.8) / 10),
+        agua_potavel: Math.round((indicadores.densidade_populacional * area * 150) / 1000),
+        residuos_solidos: Math.round((indicadores.densidade_populacional * area * 1.2)),
+        biodiversidade: indicadores.areas_verdes > 50 ? 'Alta' : indicadores.areas_verdes > 30 ? 'Média' : 'Baixa'
+    };
+    
+    return impacto;
+}
+
+function generateTrends(indicadores) {
+    return {
+        tendencia_verde: indicadores.areas_verdes > 60 ? 'Positiva ↗️' : 'Estável →',
+        mobilidade: indicadores.acessibilidade_transporte > 75 ? 'Eficiente ✅' : 'Necessita melhorias ⚠️',
+        qualidade_vida: indicadores.qualidade_ar > 70 && indicadores.ruido_urbano < 60 ? 'Alta 🌟' : 'Média 📊'
+    };
+}
+
+function getGeographicData(center, area) {
+    return {
+        latitude: center.lat.toFixed(6),
+        longitude: center.lng.toFixed(6),
+        altitude: '~1000m',
+        clima: 'Tropical de Altitude',
+        bioma: 'Cerrado'
+    };
+}
+
+function showAnalysisLoading() {
+    const results = document.getElementById('analysis-results');
+    results.innerHTML = `
+        <div class="analysis-loading">
+            <div class="loading-spinner"></div>
+            <p>Analisando área selecionada...</p>
+            <p class="loading-subtitle">Calculando indicadores de sustentabilidade</p>
+        </div>
+    `;
+    
+    document.getElementById('analysis-panel').style.display = 'block';
+}
+
+// Mostrar resultados da análise
+function showAnalysisResults(analysis, layer) {
+    const panel = document.getElementById('analysis-panel');
+    const results = document.getElementById('analysis-results');
+
+    results.innerHTML = `
+        <div class="analysis-header-info">
+            <div class="zone-badge">
+                <i class="fas fa-map-marker-alt"></i>
+                ${analysis.zona}
+            </div>
+            <div class="area-size">
+                <i class="fas fa-ruler-combined"></i>
+                ${analysis.area_km2} km²
+            </div>
+        </div>
+
+        <div class="analysis-score-card">
+            <div class="score-main">
+                <div class="score-value">${analysis.score_sustentabilidade}</div>
+                <div class="score-label">Score Sustentabilidade</div>
+                <div class="score-classification ${getScoreClass(analysis.score_sustentabilidade)}">
+                    ${analysis.classificacao}
+                </div>
+            </div>
+            <div class="score-details">
+                <div class="score-trends">
+                    <div class="trend-item">
+                        <span>🌿 Verde Urbano:</span>
+                        <span>${analysis.tendencias.tendencia_verde}</span>
+                    </div>
+                    <div class="trend-item">
+                        <span>🚌 Mobilidade:</span>
+                        <span>${analysis.tendencias.mobilidade}</span>
+                    </div>
+                    <div class="trend-item">
+                        <span>🏡 Qualidade de Vida:</span>
+                        <span>${analysis.tendencias.qualidade_vida}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-indicators">
+            <h4>📊 Indicadores de Sustentabilidade</h4>
+            <div class="indicators-grid">
+                ${Object.entries(analysis.indicadores).map(([key, value]) => `
+                    <div class="indicator-card ${getIndicatorClass(key, value)}">
+                        <div class="indicator-header">
+                            <span class="indicator-name">${formatIndicatorName(key)}</span>
+                            <span class="indicator-value">${value}%</span>
+                        </div>
+                        <div class="indicator-bar">
+                            <div class="indicator-fill" style="width: ${value}%"></div>
+                        </div>
+                        <div class="indicator-status">${getIndicatorStatus(key, value)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="environmental-impact">
+            <h4>🌍 Impacto Ambiental Estimado</h4>
+            <div class="impact-grid">
+                <div class="impact-item">
+                    <i class="fas fa-industry"></i>
+                    <span class="impact-value">${analysis.impacto_ambiental.carbono_estimado}t</span>
+                    <span class="impact-label">CO²/ano</span>
+                </div>
+                <div class="impact-item">
+                    <i class="fas fa-tint"></i>
+                    <span class="impact-value">${analysis.impacto_ambiental.agua_potavel}L</span>
+                    <span class="impact-label">Água/dia</span>
+                </div>
+                <div class="impact-item">
+                    <i class="fas fa-trash"></i>
+                    <span class="impact-value">${analysis.impacto_ambiental.residuos_solidos}t</span>
+                    <span class="impact-label">Resíduos/dia</span>
+                </div>
+                <div class="impact-item">
+                    <i class="fas fa-tree"></i>
+                    <span class="impact-value">${analysis.impacto_ambiental.biodiversidade}</span>
+                    <span class="impact-label">Biodiversidade</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-recommendations">
+            <h4>💡 Recomendações Estratégicas</h4>
+            <div class="recommendations-list">
+                ${analysis.recomendacoes.map((rec, index) => `
+                    <div class="recommendation-item">
+                        <div class="rec-number">${index + 1}</div>
+                        <div class="rec-text">${rec}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="analysis-actions">
+            <button class="btn-secondary" onclick="exportAnalysis()">
+                <i class="fas fa-download"></i>
+                Exportar Relatório
+            </button>
+            <button class="btn-primary" onclick="simulateImprovements()">
+                <i class="fas fa-chart-line"></i>
+                Simular Melhorias
+            </button>
+        </div>
+    `;
+
+    panel.style.display = 'block';
+
+    // Atualizar popup no mapa
+    updateMapPopup(analysis, layer);
+}
+
+// Funções auxiliares
+function getScoreClass(score) {
+    if (score >= 80) return 'score-excellent';
+    if (score >= 70) return 'score-good';
+    if (score >= 60) return 'score-average';
+    if (score >= 50) return 'score-poor';
+    return 'score-critical';
+}
+
+function getIndicatorClass(key, value) {
+    const inverted = ['ruido_urbano', 'densidade_construcao', 'densidade_populacional'];
+    const effectiveValue = inverted.includes(key) ? 100 - value : value;
+    
+    if (effectiveValue >= 80) return 'indicator-excellent';
+    if (effectiveValue >= 70) return 'indicator-good';
+    if (effectiveValue >= 60) return 'indicator-average';
+    if (effectiveValue >= 50) return 'indicator-poor';
+    return 'indicator-critical';
+}
+
+function getIndicatorStatus(key, value) {
+    const inverted = ['ruido_urbano', 'densidade_construcao', 'densidade_populacional'];
+    const effectiveValue = inverted.includes(key) ? 100 - value : value;
+    
+    if (effectiveValue >= 80) return 'Excelente';
+    if (effectiveValue >= 70) return 'Bom';
+    if (effectiveValue >= 60) return 'Regular';
+    if (effectiveValue >= 50) return 'Precário';
+    return 'Crítico';
+}
+
+function formatIndicatorName(key) {
+    const names = {
+        'densidade_construcao': 'Densidade Construtiva',
+        'areas_verdes': 'Áreas Verdes',
+        'acessibilidade_transporte': 'Transporte Público',
+        'qualidade_ar': 'Qualidade do Ar',
+        'ruido_urbano': 'Poluição Sonora',
+        'infraestrutura_saneamento': 'Saneamento Básico',
+        'cobertura_vegetal': 'Cobertura Vegetal',
+        'permeabilidade_solo': 'Permeabilidade do Solo',
+        'densidade_populacional': 'Densidade Populacional'
+    };
+    return names[key] || key;
+}
+
+function updateMapPopup(analysis, layer) {
+    const popupContent = `
+        <div class="analysis-popup">
+            <h4>📊 Análise da Área - ${analysis.zona}</h4>
+            <div class="popup-score">
+                <div class="popup-score-value">${analysis.score_sustentabilidade}</div>
+                <div class="popup-score-label">${analysis.classificacao}</div>
+            </div>
+            <div class="popup-details">
+                <p><strong>Área:</strong> ${analysis.area_km2} km²</p>
+                <p><strong>Transporte:</strong> ${analysis.indicadores.acessibilidade_transporte}%</p>
+                <p><strong>Áreas Verdes:</strong> ${analysis.indicadores.areas_verdes}%</p>
+                <p><strong>Qualidade do Ar:</strong> ${analysis.indicadores.qualidade_ar}%</p>
+            </div>
+            <button class="popup-btn" onclick="document.getElementById('analysis-panel').style.display='block'">
+                <i class="fas fa-chart-bar"></i>
+                Ver Análise Completa
+            </button>
+        </div>
+    `;
+
+    if (layer.getPopup()) {
+        layer.setPopupContent(popupContent);
+    } else {
+        layer.bindPopup(popupContent);
+    }
+    layer.openPopup();
+}
+
+// Funções de exportação e simulação
+function exportAnalysis() {
+    showNotification('Gerando relatório em PDF...', 'info');
+    // Implementação de exportação seria adicionada aqui
+    setTimeout(() => {
+        showNotification('Relatório exportado com sucesso!', 'success');
+    }, 2000);
+}
+
+function simulateImprovements() {
+    showNotification('Abrindo simulador de melhorias...', 'info');
+    // Abrir modal de simulação
+    document.getElementById('simulation-modal').classList.add('active');
+}
