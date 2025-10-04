@@ -624,46 +624,65 @@ async function loadPollutionHeatmap() {
 
 // Carregar dados de tráfego
 async function loadTrafficData() {
-    // Simular dados de tráfego
-    const trafficData = {
-        nivel_congestionamento: 65,
-        principais_vias: [
-            { via: "Eixo Monumental", congestionamento: 70, velocidade_media: 25 },
-            { via: "W3 Sul", congestionamento: 60, velocidade_media: 30 },
-            { via: "L2 Sul", congestionamento: 45, velocidade_media: 40 }
-        ]
-    };
+    try {
+        // Usar Overpass API para buscar vias principais de Brasília
+        const overpassQuery = `
+            [out:json][timeout:25];
+            (
+                way["highway"="motorway"](around:20000, -15.8267, -47.9218);
+                way["highway"="trunk"](around:20000, -15.8267, -47.9218);
+                way["highway"="primary"](around:20000, -15.8267, -47.9218);
+            );
+            out geom;
+        `;
 
-    // Atualizar UI de tráfego
-    document.getElementById('traffic-level-fill').style.width = `${trafficData.nivel_congestionamento}%`;
-    document.getElementById('traffic-percent').textContent = `${trafficData.nivel_congestionamento}%`;
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            body: overpassQuery
+        });
+        
+        const data = await response.json();
+        
+        // Processar as vias encontradas
+        processOSMRoads(data.elements);
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados OSM:', error);
+        // Fallback para dados simulados
+        loadSimulatedTrafficData();
+    }
+}
 
-    // Adicionar vias ao mapa
-    trafficData.principais_vias.forEach((via, index) => {
-        const coordinates = [
-            [-15.780 + (index * 0.01), -47.930 + (index * 0.01)],
-            [-15.790 + (index * 0.01), -47.920 + (index * 0.01)],
-            [-15.800 + (index * 0.01), -47.910 + (index * 0.01)]
-        ];
-        
-        const color = via.congestionamento > 70 ? 'red' : 
-                     via.congestionamento > 50 ? 'orange' : 'green';
-        
-        const polyline = L.polyline(coordinates, {
-            color: color,
-            weight: 6,
-            opacity: 0.7
-        }).addTo(map);
-        
-        polyline.bindPopup(`
-            <div class="traffic-popup">
-                <h4>🛣️ ${via.via}</h4>
-                <p><strong>Congestionamento:</strong> ${via.congestionamento}%</p>
-                <p><strong>Velocidade média:</strong> ${via.velocidade_media} km/h</p>
-            </div>
-        `);
-        
-        currentMarkers.push(polyline);
+function processOSMRoads(roads) {
+    roads.forEach(road => {
+        if (road.geometry) {
+            const coordinates = road.geometry.map(coord => [coord.lat, coord.lon]);
+            
+            // Simular dados de tráfego (em produção, você usaria dados reais)
+            const trafficLevel = Math.floor(Math.random() * 100);
+            const speed = Math.floor(Math.random() * 80) + 20;
+            
+            const color = getTrafficColor(trafficLevel);
+            const weight = getRoadWeight(road.tags.highway);
+            
+            const polyline = L.polyline(coordinates, {
+                color: color,
+                weight: weight,
+                opacity: 0.8,
+                lineCap: 'round'
+            }).addTo(map);
+            
+            polyline.bindPopup(`
+                <div class="traffic-popup">
+                    <h4>🛣 ${road.tags.name || 'Via sem nome'}</h4>
+                    <p><strong>Tipo:</strong> ${getRoadType(road.tags.highway)}</p>
+                    <p><strong>Congestionamento:</strong> ${trafficLevel}%</p>
+                    <p><strong>Velocidade:</strong> ${speed} km/h</p>
+                </div>
+            `);
+            
+            currentMarkers.push(polyline);
+        }
     });
 }
 
