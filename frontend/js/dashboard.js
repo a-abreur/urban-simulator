@@ -229,21 +229,7 @@ function toggleAreaAnalysis() {
     }
 }
 
-// Analisar área desenhada
-async function analyzeArea(layer) {
-    const bounds = layer.getBounds();
-    const center = bounds.getCenter();
-    const area = bounds.getNorthEast().distanceTo(bounds.getSouthWest());
 
-    try {
-        // Simular análise
-        const analysis = await simulateAreaAnalysis(center, area);
-        showAnalysisResults(analysis, layer);
-    } catch (error) {
-        console.error('Erro na análise:', error);
-        showNotification('Erro ao analisar a área selecionada.', 'error');
-    }
-}
 
 // Simular análise de área
 async function simulateAreaAnalysis(center, area) {
@@ -268,54 +254,7 @@ async function simulateAreaAnalysis(center, area) {
     };
 }
 
-// Mostrar resultados da análise
-function showAnalysisResults(analysis, layer) {
-    const panel = document.getElementById('analysis-panel');
-    const results = document.getElementById('analysis-results');
 
-    results.innerHTML = `
-        <div class="analysis-score">
-            <h4>📊 Score de Sustentabilidade</h4>
-            <div class="score-display">${analysis.score_sustentabilidade}/100</div>
-        </div>
-        <div class="analysis-indicators">
-            <h4>📈 Indicadores</h4>
-            ${Object.entries(analysis.indicadores).map(([key, value]) => `
-                <div class="indicator-item">
-                    <span>${formatIndicatorName(key)}</span>
-                    <div class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${value}%"></div>
-                        </div>
-                        <span class="progress-value">${value}%</span>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-        <div class="analysis-recommendations">
-            <h4>💡 Recomendações</h4>
-            <ul>
-                ${analysis.recomendacoes.map(rec => `<li>${rec}</li>`).join('')}
-            </ul>
-        </div>
-    `;
-
-    panel.style.display = 'block';
-
-    // Popup no mapa
-    const popupContent = `
-        <div class="analysis-popup">
-            <h4>📊 Análise da Área</h4>
-            <p><strong>Score:</strong> ${analysis.score_sustentabilidade}/100</p>
-            <p><strong>Área:</strong> ${(layer.getBounds().getNorthEast().distanceTo(layer.getBounds().getSouthWest()) / 1000).toFixed(2)} km²</p>
-            <button onclick="document.getElementById('analysis-panel').style.display='block'">
-                Ver Detalhes
-            </button>
-        </div>
-    `;
-
-    layer.bindPopup(popupContent).openPopup();
-}
 
 // Trocar mapa base
 function changeBaseMap(mapType) {
@@ -1342,21 +1281,22 @@ function handleDrawDeleted(e) {
 }
 
 // Analisar área desenhada
+// Modifique a função analyzeArea para debug
 async function analyzeArea(layer) {
-    showAnalysisLoading();
-    
+    console.log('Análise de área iniciada...');
     const bounds = layer.getBounds();
     const center = bounds.getCenter();
-    const areaKm2 = (bounds.getNorthEast().distanceTo(bounds.getSouthWest()) / 1000).toFixed(2);
-    
+    const area = bounds.getNorthEast().distanceTo(bounds.getSouthWest());
+
     try {
-        const analysis = await performAreaAnalysis(center, areaKm2, layer);
-        showAnalysisResults(analysis, layer);
+        const analysis = await simulateAreaAnalysis(center, area);
+        console.log('Análise concluída:', analysis);
         
-        // Adicionar layer ao mapa se não estiver
-        if (!map.hasLayer(layer)) {
-            drawnItems.addLayer(layer);
-        }
+        // Debug dos feedbacks
+        const feedbacks = generateAreaFeedback();
+        console.log('Feedbacks gerados:', feedbacks);
+        
+        showAnalysisResults(analysis, layer);
     } catch (error) {
         console.error('Erro na análise:', error);
         showNotification('Erro ao analisar a área selecionada.', 'error');
@@ -1535,122 +1475,535 @@ function showAnalysisLoading() {
     document.getElementById('analysis-panel').style.display = 'block';
 }
 
-// Mostrar resultados da análise
+
+
+// Gerar feedbacks aleatórios para a área selecionada
+function generateAreaFeedback() {
+    const authors = ['Maria S.', 'João P.', 'Ana L.', 'Carlos M.', 'Fernanda R.', 'Roberto K.', 'Patrícia T.', 'Miguel A.'];
+    const categories = {
+        'Transporte': ['Ônibus sempre atrasados', 'Metrô muito eficiente', 'Falta de ciclovias', 'Trânsito caótico nos horários de pico', 'Pontos de ônibus em bom estado'],
+        'Segurança': ['Iluminação pública precária', 'Área muito segura', 'Pouca presença policial', 'Bairro tranquilo à noite', 'Câmeras de segurança ajudam'],
+        'Meio Ambiente': ['Muita poluição do ar', 'Parques bem cuidados', 'Lixo acumulado nas ruas', 'Ar puro e qualidade de vida', 'Falta de coleta seletiva'],
+        'Infraestrutura': ['Ruas esburacadas', 'Calçadas acessíveis', 'Falta de escolas públicas', 'Hospitais bem equipados', 'Rede de esgoto precária'],
+        'Lazer': ['Parques abandonados', 'Áreas de lazer modernas', 'Falta de centros culturais', 'Muitas opções de restaurantes', 'Praças bem cuidadas']
+    };
+
+    const comments = [];
+    const totalFeedbacks = Math.floor(Math.random() * 15) + 8;
+    let positiveCount = 0;
+
+    for (let i = 0; i < totalFeedbacks; i++) {
+        const categoryKeys = Object.keys(categories);
+        const randomCategory = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+        const categoryComments = categories[randomCategory];
+        const randomComment = categoryComments[Math.floor(Math.random() * categoryComments.length)];
+        
+        const rating = Math.floor(Math.random() * 5) + 1;
+        if (rating >= 4) positiveCount++;
+
+        comments.push({
+            author: authors[Math.floor(Math.random() * authors.length)],
+            text: randomComment,
+            rating: rating,
+            category: randomCategory,
+            sentiment: rating >= 4 ? 'positive' : rating >= 3 ? 'neutral' : 'negative',
+            date: `${Math.floor(Math.random() * 30) + 1}/10/2024`
+        });
+    }
+
+    const categoryStats = {};
+    Object.keys(categories).forEach(category => {
+        const categoryComments = comments.filter(c => c.category === category);
+        const avgRating = categoryComments.length > 0 
+            ? (categoryComments.reduce((sum, c) => sum + c.rating, 0) / categoryComments.length) * 20
+            : Math.floor(Math.random() * 40) + 30;
+        
+        categoryStats[category] = {
+            score: Math.round(avgRating),
+            count: categoryComments.length
+        };
+    });
+
+    return {
+        satisfaction: Math.round((positiveCount / totalFeedbacks) * 100),
+        totalFeedbacks: totalFeedbacks,
+        positivePercentage: Math.round((positiveCount / totalFeedbacks) * 100),
+        comments: comments.sort(() => Math.random() - 0.5).slice(0, 5),
+        categories: categoryStats
+    };
+}
+
+function getSentimentClass(score) {
+    if (score >= 70) return 'positive';
+    if (score >= 50) return 'neutral';
+    return 'negative';
+}
+
+function formatIndicatorName(key) {
+    const names = {
+        'densidade_construcao': 'Densidade de Construção',
+        'areas_verdes': 'Áreas Verdes',
+        'acessibilidade_transporte': 'Acessibilidade ao Transporte',
+        'qualidade_ar': 'Qualidade do Ar',
+        'ruido_urbano': 'Ruído Urbano',
+        'infraestrutura_saneamento': 'Infraestrutura de Saneamento'
+    };
+    return names[key] || key;
+}
+
+// Função auxiliar para classes de sentimento
+function getSentimentClass(score) {
+    if (score >= 70) return 'positive';
+    if (score >= 50) return 'neutral';
+    return 'negative';
+}
+
+// Função para formatar nomes dos indicadores (se ainda não existir)
+function formatIndicatorName(key) {
+    const names = {
+        'densidade_construcao': 'Densidade de Construção',
+        'areas_verdes': 'Áreas Verdes',
+        'acessibilidade_transporte': 'Acessibilidade ao Transporte',
+        'qualidade_ar': 'Qualidade do Ar',
+        'ruido_urbano': 'Ruído Urbano',
+        'infraestrutura_saneamento': 'Infraestrutura de Saneamento'
+    };
+    return names[key] || key;
+}
+
+
+
 function showAnalysisResults(analysis, layer) {
     const panel = document.getElementById('analysis-panel');
     const results = document.getElementById('analysis-results');
 
-    results.innerHTML = `
-        <div class="analysis-header-info">
-            <div class="zone-badge">
-                <i class="fas fa-map-marker-alt"></i>
-                ${analysis.zona}
-            </div>
-            <div class="area-size">
-                <i class="fas fa-ruler-combined"></i>
-                ${analysis.area_km2} km²
-            </div>
-        </div>
+    // Mostrar loading
+    results.innerHTML = createLoadingSpinner();
+    panel.style.display = 'block';
 
-        <div class="analysis-score-card">
-            <div class="score-main">
-                <div class="score-value">${analysis.score_sustentabilidade}</div>
-                <div class="score-label">Score Sustentabilidade</div>
-                <div class="score-classification ${getScoreClass(analysis.score_sustentabilidade)}">
-                    ${analysis.classificacao}
+    // Simular carregamento (em produção, isso seria substituído pela chamada real da API)
+    setTimeout(() => {
+        // Gerar feedbacks aleatórios para a área
+        const feedbacks = generateAreaFeedback();
+        
+        results.innerHTML = createAnalysisContent(analysis, feedbacks, layer);
+        
+        // Aplicar animação de entrada
+        panel.style.animation = 'slideInRight 0.4s ease-out';
+        
+        // Adicionar estilos e funcionalidades
+        addAnalysisStyles();
+        addButtonStyles();
+        bindPopupEvents(analysis, feedbacks, layer);
+        
+    }, 1500); // Simula 1.5 segundos de carregamento
+}
+
+// Função para criar o spinner de loading
+function createLoadingSpinner() {
+    return `
+        <div class="loading-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center;">
+            <div class="spinner" style="width: 50px; height: 50px; border: 4px solid var(--border-color); border-left: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+            <h3 style="margin: 0 0 12px 0; color: var(--text-color); font-size: 1.3em; font-weight: 600;">Gerando Análise</h3>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.95em;">Processando dados de sustentabilidade e feedback populacional...</p>
+        </div>
+    `;
+}
+
+// Função para criar o conteúdo principal da análise
+function createAnalysisContent(analysis, feedbacks, layer) {
+    const areaSize = layer ? (layer.getBounds().getNorthEast().distanceTo(layer.getBounds().getSouthWest()) / 1000).toFixed(2) : '0.00';
+    
+    return `
+        <div class="analysis-content" style="max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 8px;">
+            <!-- Header -->
+            <div class="analysis-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); position: relative;">
+                <div style="flex: 1;">
+                    <h3 style="margin: 0 0 6px 0; color: var(--text-color); font-size: 1.4em; font-weight: 700; text-align: left;">Análise da Área</h3>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.9em; text-align: left;">Análise completa de sustentabilidade e feedback populacional</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); flex-shrink: 0;">
+                    <span style="font-size: 1.4em;">📊</span>
                 </div>
             </div>
-            <div class="score-details">
-                <div class="score-trends">
-                    <div class="trend-item">
-                        <span>🌿 Verde Urbano:</span>
-                        <span>${analysis.tendencias.tendencia_verde}</span>
-                    </div>
-                    <div class="trend-item">
-                        <span>🚌 Mobilidade:</span>
-                        <span>${analysis.tendencias.mobilidade}</span>
-                    </div>
-                    <div class="trend-item">
-                        <span>🏡 Qualidade de Vida:</span>
-                        <span>${analysis.tendencias.qualidade_vida}</span>
+
+            <!-- Score Card -->
+            <div class="analysis-score-container" style="margin-bottom: 24px;">
+                <div class="analysis-score" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 28px 24px; border-radius: 16px; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -50px; right: -50px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                    <div style="position: absolute; bottom: -30px; left: -30px; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                    
+                    <h4 style="margin: 0 0 12px 0; font-size: 0.95em; opacity: 0.95; font-weight: 500; letter-spacing: 0.5px; position: relative; z-index: 2;">SCORE DE SUSTENTABILIDADE</h4>
+                    <div class="score-display" style="font-size: 3.5em; font-weight: 700; text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); margin: 8px 0; position: relative; z-index: 2;">${analysis.score_sustentabilidade}</div>
+                    <div style="font-size: 1em; opacity: 0.9; font-weight: 500; position: relative; z-index: 2; margin-bottom: 16px;">de 100 pontos</div>
+                    
+                    <div style="display: flex; justify-content: center; gap: 8px; position: relative; z-index: 2;">
+                        <span style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-size: 0.85em; backdrop-filter: blur(10px); font-weight: 600;">${getScoreCategory(analysis.score_sustentabilidade)}</span>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="analysis-indicators">
-            <h4>📊 Indicadores de Sustentabilidade</h4>
-            <div class="indicators-grid">
-                ${Object.entries(analysis.indicadores).map(([key, value]) => `
-                    <div class="indicator-card ${getIndicatorClass(key, value)}">
-                        <div class="indicator-header">
-                            <span class="indicator-name">${formatIndicatorName(key)}</span>
-                            <span class="indicator-value">${value}%</span>
+            
+            <!-- Informações da Área -->
+            <div class="area-info" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+                <div style="background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                    <div style="font-size: 1.8em; font-weight: 700; color: var(--primary-color); margin-bottom: 4px;">${areaSize}</div>
+                    <div style="font-size: 0.8em; color: var(--text-muted);">km²</div>
+                </div>
+                <div style="background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                    <div style="font-size: 1.8em; font-weight: 700; color: #4CAF50; margin-bottom: 4px;">${feedbacks.totalFeedbacks}</div>
+                    <div style="font-size: 0.8em; color: var(--text-muted);">Feedbacks</div>
+                </div>
+            </div>
+            
+            <!-- Indicadores de Sustentabilidade -->
+            <div class="analysis-section" style="background: var(--card-bg); padding: 24px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+                <h4 style="margin: 0 0 20px 0; color: var(--text-color); font-size: 1.1em; display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                    <span style="background: linear-gradient(135deg, #4CAF50, #8BC34A); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9em; color: white;">📈</span>
+                    Indicadores de Sustentabilidade
+                </h4>
+                <div class="indicators-grid" style="display: grid; gap: 16px;">
+                    ${Object.entries(analysis.indicadores).map(([key, value]) => `
+                        <div class="indicator-item" style="display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); transition: all 0.2s ease;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-weight: 600; color: var(--text-color); font-size: 0.95em;">${formatIndicatorName(key)}</span>
+                                    <span style="font-weight: 700; color: var(--primary-color); font-size: 0.9em; background: rgba(102, 126, 234, 0.1); padding: 4px 10px; border-radius: 12px;">${value}%</span>
+                                </div>
+                                <div class="progress-container" style="width: 100%;">
+                                    <div class="progress-bar" style="height: 8px; background: var(--border-color); border-radius: 10px; overflow: hidden;">
+                                        <div class="progress-fill" style="height: 100%; border-radius: 10px; background: linear-gradient(90deg, #4CAF50, #8BC34A); width: ${value}%; transition: width 0.5s ease; position: relative;">
+                                            <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.5);"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="indicator-bar">
-                            <div class="indicator-fill" style="width: ${value}%"></div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Feedback Populacional -->
+            <div class="analysis-section" style="background: var(--card-bg); padding: 24px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <h4 style="margin: 0; color: var(--text-color); font-size: 1.1em; display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                        <span style="background: linear-gradient(135deg, #FF6B6B, #FFA726); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9em; color: white;">💬</span>
+                        Feedback dos Moradores
+                    </h4>
+                    <div style="display: flex; gap: 8px;">
+                        <span style="background: var(--primary-color); color: white; padding: 6px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 600;">${feedbacks.totalFeedbacks} respostas</span>
+                    </div>
+                </div>
+                
+                <!-- Resumo de Satisfação -->
+                <div class="feedback-overview" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div class="satisfaction-card" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 14px; color: white; text-align: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                        <div style="font-size: 2.5em; font-weight: 700; margin-bottom: 8px;">${feedbacks.satisfaction}%</div>
+                        <div style="font-size: 0.9em; opacity: 0.9; font-weight: 500;">Satisfação Geral</div>
+                    </div>
+                    <div class="stats-card" style="background: var(--bg-color); padding: 20px; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-around; text-align: center;">
+                            <div>
+                                <div style="font-size: 1.6em; font-weight: 700; color: var(--primary-color);">${feedbacks.positivePercentage}%</div>
+                                <div style="font-size: 0.75em; color: var(--text-muted); margin-top: 4px;">Positivos</div>
+                            </div>
+                            <div style="width: 1px; background: var(--border-color);"></div>
+                            <div>
+                                <div style="font-size: 1.6em; font-weight: 700; color: #4CAF50;">${Math.round((feedbacks.positivePercentage * feedbacks.totalFeedbacks) / 100)}</div>
+                                <div style="font-size: 0.75em; color: var(--text-muted); margin-top: 4px;">Avaliações</div>
+                            </div>
                         </div>
-                        <div class="indicator-status">${getIndicatorStatus(key, value)}</div>
                     </div>
-                `).join('')}
-            </div>
-        </div>
-
-        <div class="environmental-impact">
-            <h4>🌍 Impacto Ambiental Estimado</h4>
-            <div class="impact-grid">
-                <div class="impact-item">
-                    <i class="fas fa-industry"></i>
-                    <span class="impact-value">${analysis.impacto_ambiental.carbono_estimado}t</span>
-                    <span class="impact-label">CO²/ano</span>
                 </div>
-                <div class="impact-item">
-                    <i class="fas fa-tint"></i>
-                    <span class="impact-value">${analysis.impacto_ambiental.agua_potavel}L</span>
-                    <span class="impact-label">Água/dia</span>
-                </div>
-                <div class="impact-item">
-                    <i class="fas fa-trash"></i>
-                    <span class="impact-value">${analysis.impacto_ambiental.residuos_solidos}t</span>
-                    <span class="impact-label">Resíduos/dia</span>
-                </div>
-                <div class="impact-item">
-                    <i class="fas fa-tree"></i>
-                    <span class="impact-value">${analysis.impacto_ambiental.biodiversidade}</span>
-                    <span class="impact-label">Biodiversidade</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="analysis-recommendations">
-            <h4>💡 Recomendações Estratégicas</h4>
-            <div class="recommendations-list">
-                ${analysis.recomendacoes.map((rec, index) => `
-                    <div class="recommendation-item">
-                        <div class="rec-number">${index + 1}</div>
-                        <div class="rec-text">${rec}</div>
+                
+                <!-- Comentários -->
+                <div class="feedback-comments" style="margin-bottom: 24px;">
+                    <h5 style="margin: 0 0 16px 0; color: var(--text-color); font-size: 1em; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                        <span style="background: var(--bg-color); width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">💭</span>
+                        Comentários Recentes
+                    </h5>
+                    <div style="display: grid; gap: 12px;">
+                        ${feedbacks.comments.slice(0, 3).map(comment => {
+                            let borderColor = '#4CAF50';
+                            let sentimentIcon = '😊';
+                            let sentimentBg = 'rgba(76, 175, 80, 0.08)';
+                            
+                            if (comment.sentiment === 'negative') {
+                                borderColor = '#f44336';
+                                sentimentIcon = '😞';
+                                sentimentBg = 'rgba(244, 67, 54, 0.08)';
+                            } else if (comment.sentiment === 'neutral') {
+                                borderColor = '#ff9800';
+                                sentimentIcon = '😐';
+                                sentimentBg = 'rgba(255, 152, 0, 0.08)';
+                            }
+                            
+                            return `
+                            <div class="comment-item" style="background: ${sentimentBg}; border-radius: 12px; padding: 16px; border-left: 4px solid ${borderColor}; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 0; right: 0; padding: 8px 12px; background: ${borderColor}; color: white; font-size: 0.8em; font-weight: 600; border-bottom-left-radius: 12px;">
+                                    ${sentimentIcon}
+                                </div>
+                                <div class="comment-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <div>
+                                        <span class="comment-author" style="font-weight: 600; color: var(--text-color); font-size: 0.95em;">${comment.author}</span>
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                            <span class="comment-rating" style="color: #ffd700; font-size: 0.9em; letter-spacing: 1px;">
+                                                ${'★'.repeat(comment.rating)}${'☆'.repeat(5-comment.rating)}
+                                            </span>
+                                            <span style="font-size: 0.75em; color: var(--text-muted);">${comment.date}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="comment-text" style="margin: 12px 0; color: var(--text-color); line-height: 1.5; font-size: 0.9em; font-style: italic;">"${comment.text}"</p>
+                                <div class="comment-category">
+                                    <span class="category-tag" style="background: ${borderColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75em; font-weight: 600;">${comment.category}</span>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
                     </div>
-                `).join('')}
+                </div>
+
+                <!-- Análise por Categoria -->
+                <div class="feedback-categories">
+                    <h5 style="margin: 0 0 16px 0; color: var(--text-color); font-size: 1em; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                        <span style="background: var(--bg-color); width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">📋</span>
+                        Análise por Categoria
+                    </h5>
+                    <div style="display: grid; gap: 12px;">
+                        ${Object.entries(feedbacks.categories).map(([category, data]) => {
+                            let fillColor = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+                            let scoreColor = '#4CAF50';
+                            if (data.score < 70) {
+                                fillColor = 'linear-gradient(90deg, #FF9800, #FFC107)';
+                                scoreColor = '#FF9800';
+                            }
+                            if (data.score < 50) {
+                                fillColor = 'linear-gradient(90deg, #f44336, #ff7961)';
+                                scoreColor = '#f44336';
+                            }
+                            
+                            return `
+                            <div class="category-item" style="display: flex; align-items: center; gap: 16px; padding: 14px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <span class="category-name" style="font-weight: 600; color: var(--text-color); font-size: 0.9em;">${category}</span>
+                                        <span class="category-score" style="font-weight: 700; color: ${scoreColor}; font-size: 0.9em; background: rgba(${scoreColor === '#4CAF50' ? '76,175,80' : scoreColor === '#FF9800' ? '255,152,0' : '244,67,54'}, 0.1); padding: 4px 10px; border-radius: 12px;">${data.score}%</span>
+                                    </div>
+                                    <div class="progress-bar" style="width: 100%; height: 6px; background: var(--border-color); border-radius: 10px; overflow: hidden;">
+                                        <div class="progress-fill" style="height: 100%; border-radius: 10px; background: ${fillColor}; width: ${data.score}%; transition: width 0.5s ease;"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                                        <span class="category-count" style="font-size: 0.75em; color: var(--text-muted);">${data.count} comentários</span>
+                                        <span style="font-size: 0.75em; color: var(--text-muted); font-weight: 500;">${getSentimentText(data.score)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recomendações -->
+            <div class="analysis-section" style="background: linear-gradient(135deg, #e3f2fd, #f3e5f5); padding: 24px; border-radius: 16px; border-left: 4px solid var(--primary-color); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; margin-bottom: 20px;">
+                <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: rgba(103, 58, 183, 0.1); border-radius: 50%;"></div>
+                <h4 style="margin: 0 0 18px 0; color: var(--text-color); font-size: 1.1em; display: flex; align-items: center; gap: 10px; font-weight: 600; position: relative;">
+                    <span style="background: var(--primary-color); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9em; color: white;">💡</span>
+                    Recomendações
+                </h4>
+                <div style="display: grid; gap: 12px; position: relative;">
+                    ${analysis.recomendacoes.map((rec, index) => `
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(255,255,255,0.7); border-radius: 10px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5);">
+                            <span style="background: var(--primary-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 600; flex-shrink: 0;">${index + 1}</span>
+                            <span style="color: var(--text-color); line-height: 1.5; font-size: 0.9em; font-weight: 500;">${rec}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="analysis-actions" style="display: flex; gap: 12px; margin-top: 24px;">
+                <button class="btn-secondary" onclick="exportAnalysis()" style="display: flex; align-items: center; gap: 8px; background: var(--bg-color); color: var(--text-color); border: 2px solid var(--border-color); padding: 14px 20px; border-radius: 12px; cursor: pointer; font-size: 0.95em; font-weight: 600; transition: all 0.3s ease; flex: 1; justify-content: center;">
+                    <i class="fas fa-download"></i>
+                    Exportar Relatório
+                </button>
+                <button class="btn-primary" onclick="simulateImprovements()" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px 20px; border-radius: 12px; cursor: pointer; font-size: 0.95em; font-weight: 600; transition: all 0.3s ease; flex: 1; justify-content: center; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                    <i class="fas fa-chart-line"></i>
+                    Simular Melhorias
+                </button>
             </div>
         </div>
+    `;
+}
 
-        <div class="analysis-actions">
-            <button class="btn-secondary" onclick="exportAnalysis()">
-                <i class="fas fa-download"></i>
-                Exportar Relatório
-            </button>
-            <button class="btn-primary" onclick="simulateImprovements()">
-                <i class="fas fa-chart-line"></i>
-                Simular Melhorias
-            </button>
+// Função para vincular eventos do popup
+function bindPopupEvents(analysis, feedbacks, layer) {
+    if (!layer) return;
+    
+    const areaSize = (layer.getBounds().getNorthEast().distanceTo(layer.getBounds().getSouthWest()) / 1000).toFixed(2);
+    const popupContent = `
+        <div class="analysis-popup" style="padding: 0; min-width: 280px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); border: 1px solid var(--border-color);">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white; text-align: center;">
+                <h4 style="margin: 0 0 8px 0; font-size: 1.2em; font-weight: 600;">📊 Análise da Área</h4>
+                <div style="display: flex; justify-content: center; gap: 20px; margin-top: 12px;">
+                    <div>
+                        <div style="font-size: 1.8em; font-weight: 700;">${analysis.score_sustentabilidade}</div>
+                        <div style="font-size: 0.8em; opacity: 0.9;">Score</div>
+                    </div>
+                    <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
+                    <div>
+                        <div style="font-size: 1.8em; font-weight: 700;">${feedbacks.satisfaction}%</div>
+                        <div style="font-size: 0.8em; opacity: 0.9;">Satisfação</div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 16px; background: white;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 0.85em; color: #666;">
+                    <span>📍 ${areaSize} km²</span>
+                    <span>💬 ${feedbacks.totalFeedbacks} feedbacks</span>
+                </div>
+                <button onclick="document.getElementById('analysis-panel').style.display='block'" 
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-size: 0.95em; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                    📖 Ver Análise Completa
+                </button>
+            </div>
         </div>
     `;
 
-    panel.style.display = 'block';
-
-    // Atualizar popup no mapa
-    updateMapPopup(analysis, layer);
+    layer.bindPopup(popupContent).openPopup();
 }
+
+// Função para adicionar estilos CSS melhorados
+function addAnalysisStyles() {
+    if (!document.getElementById('analysis-styles')) {
+        const style = document.createElement('style');
+        style.id = 'analysis-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            .analysis-content {
+                scrollbar-width: thin;
+                scrollbar-color: var(--primary-color) var(--border-color);
+            }
+            
+            .analysis-content::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .analysis-content::-webkit-scrollbar-track {
+                background: var(--border-color);
+                border-radius: 3px;
+            }
+            
+            .analysis-content::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 3px;
+            }
+            
+            .analysis-content::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(135deg, #5a6fd8, #6a4190);
+            }
+            
+            .comment-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            .indicator-item:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            
+            .category-item:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            
+            .loading-container {
+                animation: fadeIn 0.5s ease-out;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Função para adicionar estilos dos botões
+function addButtonStyles() {
+    if (!document.getElementById('button-styles')) {
+        const style = document.createElement('style');
+        style.id = 'button-styles';
+        style.textContent = `
+            .btn-secondary {
+                transition: all 0.3s ease !important;
+            }
+            
+            .btn-secondary:hover {
+                background: var(--border-color) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .btn-primary {
+                transition: all 0.3s ease !important;
+            }
+            
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #5a6fd8, #6a4190) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+            }
+            
+            .btn-secondary:active, .btn-primary:active {
+                transform: translateY(0) !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Funções auxiliares
+function getScoreCategory(score) {
+    if (score >= 90) return 'Excelente';
+    if (score >= 80) return 'Muito Bom';
+    if (score >= 70) return 'Bom';
+    if (score >= 60) return 'Regular';
+    return 'Necessita Melhoria';
+}
+
+function getSentimentText(score) {
+    if (score >= 80) return 'Muito Positivo';
+    if (score >= 60) return 'Positivo';
+    if (score >= 40) return 'Neutro';
+    return 'Preocupante';
+}
+
+function formatIndicatorName(key) {
+    return key.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+}
+
+
+
 
 // Funções auxiliares
 function getScoreClass(score) {
@@ -1741,3 +2094,103 @@ function simulateImprovements() {
     // Abrir modal de simulação
     document.getElementById('simulation-modal').classList.add('active');
 }
+
+
+
+
+// Função auxiliar para classes de sentimento
+function getSentimentClass(score) {
+    if (score >= 70) return 'positive';
+    if (score >= 50) return 'neutral';
+    return 'negative';
+}
+
+
+
+
+
+
+
+
+// Teste rápido - execute esta função no console do navegador
+function testarFeedbacks() {
+    console.log('Testando geração de feedbacks...');
+    
+    const feedbacks = generateAreaFeedback();
+    console.log('Feedbacks gerados:', feedbacks);
+    
+    // Simular abertura do painel
+    const analysis = {
+        score_sustentabilidade: 78,
+        indicadores: {
+            densidade_construcao: 65,
+            areas_verdes: 80,
+            acessibilidade_transporte: 55,
+            qualidade_ar: 70,
+            ruido_urbano: 60,
+            infraestrutura_saneamento: 75
+        },
+        recomendacoes: [
+            "Aumentar áreas verdes em 15%",
+            "Melhorar acesso ao transporte público"
+        ]
+    };
+    
+    showAnalysisResults(analysis, { 
+        getBounds: () => ({ 
+            getNorthEast: () => ({ distanceTo: () => 2.5 }),
+            getSouthWest: () => ({})
+        }) 
+    });
+    
+    console.log('Painel deve estar aberto com os feedbacks!');
+}
+
+// No console do navegador, digite: testarFeedbacks()
+
+
+
+
+
+// Função de teste - adicione isso no final do dashboard.js
+function testarFeedbacks() {
+    console.log('=== TESTANDO FEEDBACKS ===');
+    
+    // Testar geração de feedbacks
+    const feedbacks = generateAreaFeedback();
+    console.log('Feedbacks gerados:', feedbacks);
+    
+    // Simular dados de análise
+    const analysis = {
+        score_sustentabilidade: 78,
+        indicadores: {
+            densidade_construcao: 65,
+            areas_verdes: 80,
+            acessibilidade_transporte: 55,
+            qualidade_ar: 70,
+            ruido_urbano: 60,
+            infraestrutura_saneamento: 75
+        },
+        recomendacoes: [
+            "Aumentar áreas verdes em 15%",
+            "Melhorar acesso ao transporte público"
+        ]
+    };
+    
+    // Simular uma layer
+    const mockLayer = {
+        getBounds: () => ({
+            getNorthEast: () => ({ distanceTo: () => 2.5 }),
+            getSouthWest: () => ({})
+        })
+    };
+    
+    // Mostrar resultados
+    showAnalysisResults(analysis, mockLayer);
+    
+    console.log('✅ Painel de análise deve estar aberto com feedbacks!');
+    console.log('👉 Procure a seção "💬 Feedback dos Moradores" no painel à direita');
+}
+
+// Torna a função global para poder testar no console
+window.testarFeedbacks = testarFeedbacks;

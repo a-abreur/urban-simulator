@@ -729,7 +729,6 @@ input:checked + .theme-slider .moon-icon {
   border-radius: 3px;
   background: var(--border-color);
   outline: none;
-  -webkit-appearance: none;
 }
 
 .option-group input[type="range"]::-webkit-slider-thumb {
@@ -1656,4 +1655,669 @@ input:checked + .theme-slider .moon-icon {
 
 [data-theme="dark"] .tool-btn.active {
   background: rgba(44, 85, 48, 0.2);
+}
+
+
+
+/* Estilos para a seção de feedback na análise */
+.analysis-feedback {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px 0;
+  border: 1px solid var(--border-color);
+}
+
+.feedback-overview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.feedback-score {
+  text-align: center;
+}
+
+.feedback-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: var(--success-color);
+}
+
+.feedback-label {
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.feedback-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.4em;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.feedback-comments {
+  margin-bottom: 20px;
+}
+
+.comment-item {
+  background: var(--bg-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  border-left: 4px solid var(--border-color);
+}
+
+.comment-item.positive {
+  border-left-color: var(--success-color);
+}
+
+.comment-item.negative {
+  border-left-color: var(--danger-color);
+}
+
+.comment-item.neutral {
+  border-left-color: var(--warning-color);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.comment-rating {
+  color: #ffd700;
+  font-size: 0.9em;
+}
+
+.comment-text {
+  margin: 8px 0;
+  font-style: italic;
+  color: var(--text-color);
+}
+
+.comment-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+}
+
+.category-tag {
+  background: var(--primary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7em;
+}
+
+.comment-date {
+  color: var(--text-muted);
+}
+
+.feedback-categories {
+  margin-top: 15px;
+}
+
+.category-item {
+  margin: 10px 0;
+}
+
+.category-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.category-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.category-score {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.category-count {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.progress-fill.positive {
+  background: var(--success-color);
+}
+
+.progress-fill.neutral {
+  background: var(--warning-color);
+}
+
+.progress-fill.negative {
+  background: var(--danger-color);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== ESTILOS PARA O PAINEL DE ANÁLISE ===== */
+.analysis-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 400px;
+  height: calc(100vh - 100px);
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  z-index: 1000;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--primary-color), #4a6fff);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.analysis-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.analysis-content {
+  height: calc(100% - 70px);
+  overflow-y: auto;
+  padding: 0;
+}
+
+.analysis-results {
+  padding: 20px;
+}
+
+/* ===== SCORE DE SUSTENTABILIDADE ===== */
+.analysis-score {
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-score h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.1em;
+  opacity: 0.9;
+}
+
+.score-display {
+  font-size: 3em;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== INDICADORES ===== */
+.analysis-indicators {
+  background: var(--bg-color);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.analysis-indicators h4 {
+  margin: 0 0 15px 0;
+  color: var(--text-color);
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.indicator-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.indicator-item span:first-child {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.9em;
+  flex: 1;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 150px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  transition: width 0.3s ease;
+}
+
+.progress-value {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 35px;
+  text-align: right;
+}
+
+/* ===== FEEDBACK DOS MORADORES ===== */
+.analysis-feedback {
+  background: var(--bg-color);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.analysis-feedback h4 {
+  margin: 0 0 20px 0;
+  color: var(--text-color);
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Overview do Feedback */
+.feedback-overview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.feedback-score {
+  text-align: center;
+}
+
+.feedback-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.feedback-label {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.feedback-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.4em;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+/* Comentários */
+.feedback-comments {
+  margin-bottom: 20px;
+}
+
+.feedback-comments h5 {
+  margin: 0 0 15px 0;
+  color: var(--text-color);
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-item {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 12px 0;
+  border-left: 4px solid;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.comment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.comment-item.positive {
+  border-left-color: #4CAF50;
+  background: linear-gradient(135deg, var(--card-bg), rgba(76, 175, 80, 0.05));
+}
+
+.comment-item.negative {
+  border-left-color: #f44336;
+  background: linear-gradient(135deg, var(--card-bg), rgba(244, 67, 54, 0.05));
+}
+
+.comment-item.neutral {
+  border-left-color: #ff9800;
+  background: linear-gradient(135deg, var(--card-bg), rgba(255, 152, 0, 0.05));
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.comment-rating {
+  color: #ffd700;
+  font-size: 0.9em;
+  letter-spacing: 1px;
+}
+
+.comment-text {
+  margin: 10px 0;
+  font-style: italic;
+  color: var(--text-color);
+  line-height: 1.4;
+  font-size: 0.9em;
+}
+
+.comment-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+}
+
+.category-tag {
+  background: var(--primary-color);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75em;
+  font-weight: 500;
+}
+
+.comment-date {
+  color: var(--text-muted);
+  font-size: 0.8em;
+}
+
+/* Categorias do Feedback */
+.feedback-categories {
+  margin-top: 20px;
+}
+
+.feedback-categories h5 {
+  margin: 0 0 15px 0;
+  color: var(--text-color);
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-item {
+  margin: 12px 0;
+  padding: 10px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.category-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.category-name {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.category-score {
+  font-weight: bold;
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.category-count {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* Cores para as barras de progresso por sentimento */
+.progress-fill.positive {
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+}
+
+.progress-fill.neutral {
+  background: linear-gradient(90deg, #FF9800, #FFC107);
+}
+
+.progress-fill.negative {
+  background: linear-gradient(90deg, #f44336, #ff7961);
+}
+
+/* ===== RECOMENDAÇÕES ===== */
+.analysis-recommendations {
+  background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.analysis-recommendations h4 {
+  margin: 0 0 15px 0;
+  color: var(--text-color);
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-recommendations ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.analysis-recommendations li {
+  margin-bottom: 8px;
+  color: var(--text-color);
+  line-height: 1.4;
+  font-size: 0.9em;
+}
+
+.analysis-recommendations li:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== SCROLLBAR PERSONALIZADA ===== */
+.analysis-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.analysis-content::-webkit-scrollbar-track {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.analysis-content::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.analysis-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* ===== ANIMAÇÕES ===== */
+@keyframes slideInRight {
+  from {
+      opacity: 0;
+      transform: translateX(100%);
+  }
+  to {
+      opacity: 1;
+      transform: translateX(0);
+  }
+}
+
+.analysis-panel[style*="display: block"] {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .analysis-panel {
+      width: 350px;
+      right: 10px;
+      top: 70px;
+      height: calc(100vh - 80px);
+  }
+  
+  .feedback-overview {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+  }
+  
+  .feedback-stats {
+      justify-content: center;
+  }
+}
+
+/* ===== BOTÃO FECHAR ===== */
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== ESTILOS PARA O POPUP NO MAPA ===== */
+.analysis-popup {
+  padding: 10px;
+  min-width: 200px;
+}
+
+.analysis-popup h4 {
+  margin: 0 0 10px 0;
+  color: var(--primary-color);
+}
+
+.analysis-popup p {
+  margin: 5px 0;
+  font-size: 0.9em;
+}
+
+.analysis-popup button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-top: 10px;
+  width: 100%;
+  transition: background 0.2s ease;
+}
+
+.analysis-popup button:hover {
+  background: var(--primary-dark);
 }
