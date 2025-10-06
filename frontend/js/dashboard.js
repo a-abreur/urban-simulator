@@ -1,6 +1,6 @@
-// dashboard.js - Dashboard Urbano com Dark Mode
 
-// Configuração e estado global
+
+
 const API_BASE_URL = "http://localhost:5000/api";
 let map;
 let heatLayer = null;
@@ -9,30 +9,30 @@ let activeLayers = new Set(['clima', 'estacoes']);
 let baseMapLayer = null;
 let drawnItems = new L.FeatureGroup();
 
-// Inicialização do mapa
+
 function initializeMap() {
     map = L.map('map').setView([-15.8267, -47.9218], 12);
     
-    // Mapa base padrão
+    
     baseMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Adicionar grupo de desenho
+    
     map.addLayer(drawnItems);
 }
 
-// Inicializar controle de modo escuro
+
 function initializeDarkModeToggle() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     const themeLabel = document.getElementById('theme-label');
     
-    // Carregar preferência salva
+    
     const isDarkMode = localStorage.getItem('dark-mode') === 'true';
     darkModeToggle.checked = isDarkMode;
     updateTheme(isDarkMode, themeLabel);
     
-    // Event listener para o toggle
+    
     darkModeToggle.addEventListener('change', function() {
         const isDark = this.checked;
         updateTheme(isDark, themeLabel);
@@ -40,7 +40,7 @@ function initializeDarkModeToggle() {
     });
 }
 
-// Atualizar tema baseado no estado do toggle
+
 function updateTheme(isDark, themeLabel) {
     if (isDark) {
         document.body.setAttribute('data-theme', 'dark');
@@ -51,36 +51,36 @@ function updateTheme(isDark, themeLabel) {
     }
 }
 
-// Inicializar controles da UI
+
 function initializeUIControls() {
-    // Controles de zoom
+    
     document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
     document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
     
-    // Centralizar em Brasília
+    
     document.getElementById('current-location').addEventListener('click', () => {
         map.setView([-15.8267, -47.9218], 12);
     });
 
-    // Tela cheia
+    
     document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
 
-    // Fechar painéis
+    
     document.getElementById('close-info').addEventListener('click', () => {
         document.getElementById('info-panel').classList.remove('active');
     });
 
-    // Controles de camadas
+    
     document.querySelectorAll('.layer-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const layer = this.dataset.layer;
             const isActive = this.classList.toggle('active');
             
-            // Atualizar ícone
+            
             const icon = this.querySelector('.status-icon');
             icon.className = isActive ? 'fas fa-check status-icon' : 'fas fa-plus status-icon';
             
-            // Atualizar conjunto de camadas ativas
+            
             if (isActive) {
                 activeLayers.add(layer);
             } else {
@@ -92,22 +92,22 @@ function initializeUIControls() {
         });
     });
 
-    // Controle de mapa base
+    
     document.getElementById('base-map-select').addEventListener('change', function(e) {
         changeBaseMap(e.target.value);
     });
 
-    // Inicializar toggle do modo escuro
+    
     initializeDarkModeToggle();
 
-    // Ferramentas de análise
+    
     initializeAnalysisTools();
     
-    // Simulação
+    
     initializeSimulation();
 }
 
-// Inicializar ferramentas de análise
+
 function initializeAnalysisTools() {
     document.getElementById('area-analysis-btn').addEventListener('click', toggleAreaAnalysis);
     document.getElementById('report-btn').addEventListener('click', generateReport);
@@ -119,28 +119,28 @@ function initializeAnalysisTools() {
     });
 }
 
-// Inicializar simulação
+
 function initializeSimulation() {
     const modal = document.getElementById('simulation-modal');
     const closeBtn = document.getElementById('close-simulation-modal');
     const cancelBtn = document.getElementById('cancel-simulation');
     const runBtn = document.getElementById('run-simulation');
 
-    // Configurar sliders
+    
     setupSimulationSliders();
 
-    // Eventos do modal
+    
     closeBtn.addEventListener('click', closeSimulationModal);
     cancelBtn.addEventListener('click', closeSimulationModal);
     runBtn.addEventListener('click', runSimulation);
 
-    // Fechar modal clicando fora
+    
     modal.addEventListener('click', function(e) {
         if (e.target === modal) closeSimulationModal();
     });
 }
 
-// Configurar sliders de simulação
+
 function setupSimulationSliders() {
     const sliders = [
         { id: 'green-areas', valueId: 'green-areas-value' },
@@ -159,7 +159,7 @@ function setupSimulationSliders() {
     });
 }
 
-// Atualizar impacto da simulação
+
 function updateSimulationImpact() {
     const greenAreas = parseInt(document.getElementById('green-areas').value);
     const publicTransport = parseInt(document.getElementById('public-transport').value);
@@ -179,14 +179,14 @@ function updateSimulationImpact() {
     });
 }
 
-// Alternar análise de área
+
 function toggleAreaAnalysis() {
     analysisMode = !analysisMode;
     const btn = document.getElementById('area-analysis-btn');
     const badge = document.getElementById('analysis-status');
 
     if (analysisMode) {
-        // Ativar ferramentas de desenho
+        
         const drawControl = new L.Control.Draw({
             draw: {
                 polygon: true,
@@ -204,7 +204,7 @@ function toggleAreaAnalysis() {
         badge.textContent = 'ON';
         badge.style.background = 'var(--success-color)';
 
-        // Evento de criação de área
+        
         map.on(L.Draw.Event.CREATED, function(e) {
             const layer = e.layer;
             drawnItems.addLayer(layer);
@@ -213,7 +213,7 @@ function toggleAreaAnalysis() {
 
         showNotification('Modo de análise ativado. Desenhe uma área no mapa para analisar.', 'info');
     } else {
-        // Desativar ferramentas de desenho
+        
         map.eachLayer((layer) => {
             if (layer instanceof L.Control.Draw) {
                 map.removeControl(layer);
@@ -231,7 +231,7 @@ function toggleAreaAnalysis() {
 
 
 
-// Simular análise de área
+
 async function simulateAreaAnalysis(center, area) {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -256,7 +256,7 @@ async function simulateAreaAnalysis(center, area) {
 
 
 
-// Trocar mapa base
+
 function changeBaseMap(mapType) {
     if (baseMapLayer) {
         map.removeLayer(baseMapLayer);
@@ -286,18 +286,18 @@ function changeBaseMap(mapType) {
         attribution: config.attribution
     }).addTo(map);
 
-    // Mostrar/ocultar legenda de tráfego
+    
     const trafficLegend = document.getElementById('traffic-legend');
     trafficLegend.style.display = mapType === 'transito' ? 'block' : 'none';
 }
 
-// Atualizar camadas do mapa
-// Atualizar a função updateMapLayers para incluir a legenda
+
+
 function updateMapLayers() {
-    // Limpar camadas existentes
+    
     clearMapLayers();
 
-    // Aplicar camadas ativas
+    
     if (activeLayers.has('clima')) {
         loadWeatherData();
     }
@@ -322,13 +322,13 @@ function updateMapLayers() {
 
     if (activeLayers.has('temperatura')) {
         loadHeatIslands();
-        createHeatLegend(); // Adicionar legenda do heat
+        createHeatLegend(); 
     } else {
         removeHeatLegend();
     }
 }
 
-// Função para criar legenda do heat
+
 function createHeatLegend() {
     let legend = document.getElementById('heat-legend');
     if (!legend) {
@@ -362,7 +362,7 @@ function createHeatLegend() {
     legend.style.display = 'block';
 }
 
-// Função para remover legenda do heat
+
 function removeHeatLegend() {
     const legend = document.getElementById('heat-legend');
     if (legend) {
@@ -370,7 +370,7 @@ function removeHeatLegend() {
     }
 }
 
-// Limpar camadas do mapa
+
 function clearMapLayers() {
     if (heatLayer) {
         map.removeLayer(heatLayer);
@@ -386,7 +386,7 @@ function clearMapLayers() {
     currentMarkers = currentMarkers.filter(m => m instanceof L.Marker);
 }
 
-// Atualizar seções da sidebar
+
 function updateSidebarSections() {
     const trafficSection = document.getElementById('traffic-section');
     const feedbackSection = document.getElementById('feedback-section');
@@ -395,16 +395,16 @@ function updateSidebarSections() {
     feedbackSection.style.display = activeLayers.has('feedback') ? 'block' : 'none';
 }
 
-// Carregar dados da cidade
+
 async function loadCityData(city = "Brasília") {
     try {
         showLoadingState(true);
         
-        // Atualizar UI
+        
         document.getElementById('current-city').textContent = city;
         document.getElementById('update-time').textContent = 'Atualizando...';
 
-        // Simular carregamento de dados
+        
         const [weatherData, pollutionData, stationsData] = await Promise.all([
             simulateAPICall('clima'),
             simulateAPICall('poluicao'),
@@ -427,7 +427,7 @@ async function loadCityData(city = "Brasília") {
     }
 }
 
-// Simular chamada à API
+
 async function simulateAPICall(endpoint) {
     await new Promise(resolve => setTimeout(resolve, 500));
     
@@ -460,7 +460,7 @@ async function simulateAPICall(endpoint) {
     return mockData[endpoint];
 }
 
-// Atualizar indicadores na UI
+
 function updateIndicatorsUI(weatherData, pollutionData) {
     if (weatherData) {
         document.getElementById('temp-value').textContent = `${weatherData.temperatura}°C`;
@@ -477,7 +477,7 @@ function updateIndicatorsUI(weatherData, pollutionData) {
     }
 }
 
-// Carregar dados de clima
+
 async function loadWeatherData() {
     const data = await simulateAPICall('clima');
     
@@ -497,7 +497,7 @@ async function loadWeatherData() {
     currentMarkers.push(marker);
 }
 
-// Carregar estações de monitoramento
+
 async function loadMonitoringStations() {
     const data = await simulateAPICall('estacoes');
     
@@ -530,12 +530,12 @@ async function loadMonitoringStations() {
     }
 }
 
-// Carregar heatmap de poluição
+
 async function loadPollutionHeatmap() {
     const data = await simulateAPICall('poluicao');
     
     if (data?.poluentes) {
-        // Gerar pontos aleatórios para demonstração
+        
         const points = [];
         for (let i = 0; i < 50; i++) {
             points.push([
@@ -560,10 +560,10 @@ async function loadPollutionHeatmap() {
     }
 }
 
-// Carregar dados de tráfego
+
 async function loadTrafficData() {
     try {
-        // Usar Overpass API para buscar vias principais de Brasília
+        
         const overpassQuery = `
             [out:json][timeout:25];
             (
@@ -581,12 +581,12 @@ async function loadTrafficData() {
         
         const data = await response.json();
         
-        // Processar as vias encontradas
+        
         processOSMRoads(data.elements);
         
     } catch (error) {
         console.error('Erro ao carregar dados OSM:', error);
-        // Fallback para dados simulados
+        
         loadSimulatedTrafficData();
     }
 }
@@ -596,7 +596,7 @@ function processOSMRoads(roads) {
         if (road.geometry) {
             const coordinates = road.geometry.map(coord => [coord.lat, coord.lon]);
             
-            // Simular dados de tráfego (em produção, você usaria dados reais)
+            
             const trafficLevel = Math.floor(Math.random() * 100);
             const speed = Math.floor(Math.random() * 80) + 20;
             
@@ -624,8 +624,8 @@ function processOSMRoads(roads) {
     });
 }
 
-// Carregar ilhas de calor
-// Função para carregar ilhas de calor com efeito de heat circle
+
+
 async function loadHeatIslands() {
     const heatIslands = [
         { 
@@ -702,14 +702,14 @@ async function loadHeatIslands() {
         }
     ];
 
-    // Criar uma camada de heatmap para as ilhas de calor
+    
     const heatPoints = heatIslands.map(area => [
         area.coords[0],
         area.coords[1],
-        area.temp_diff * 10 // Intensidade baseada na diferença térmica
+        area.temp_diff * 10 
     ]);
 
-    // Adicionar heatmap principal
+    
     heatLayer = L.heatLayer(heatPoints, {
         radius: 35,
         blur: 20,
@@ -724,17 +724,17 @@ async function loadHeatIslands() {
         }
     }).addTo(map);
 
-    // Adicionar marcadores com círculos de calor individuais
+    
     heatIslands.forEach(area => {
         createHeatCircle(area);
     });
 }
 
-// Função para criar círculos de calor individuais
+
 function createHeatCircle(area) {
-    const radius = area.temp_diff * 400; // Raio baseado na diferença térmica
+    const radius = area.temp_diff * 400; 
     
-    // Criar círculo com gradiente de calor
+    
     const heatCircle = L.circle(area.coords, {
         radius: radius,
         fillColor: getHeatColor(area.temp_diff),
@@ -745,10 +745,10 @@ function createHeatCircle(area) {
         className: 'heat-circle'
     }).addTo(map);
 
-    // Adicionar efeito de pulso
+    
     addPulseEffect(heatCircle, area.temp_diff);
 
-    // Popup informativo
+    
     heatCircle.bindPopup(`
         <div class="heat-popup">
             <h4>🔥 ${area.area}</h4>
@@ -766,7 +766,7 @@ function createHeatCircle(area) {
         </div>
     `);
 
-    // Efeito hover
+    
     heatCircle.on('mouseover', function() {
         this.setStyle({
             fillOpacity: 0.7,
@@ -786,17 +786,17 @@ function createHeatCircle(area) {
     currentMarkers.push(heatCircle);
 }
 
-// Função para obter cor baseada na temperatura
+
 function getHeatColor(tempDiff) {
-    if (tempDiff >= 3.0) return '#ff0000'; // Vermelho - Muito quente
-    if (tempDiff >= 2.5) return '#ff4500'; // Laranja vermelho
-    if (tempDiff >= 2.0) return '#ff8c00'; // Laranja
-    if (tempDiff >= 1.5) return '#ffd700'; // Amarelo
-    if (tempDiff >= 1.0) return '#ffff00'; // Amarelo claro
-    return '#90ee90'; // Verde claro - Menos quente
+    if (tempDiff >= 3.0) return '#ff0000'; 
+    if (tempDiff >= 2.5) return '#ff4500'; 
+    if (tempDiff >= 2.0) return '#ff8c00'; 
+    if (tempDiff >= 1.5) return '#ffd700'; 
+    if (tempDiff >= 1.0) return '#ffff00'; 
+    return '#90ee90'; 
 }
 
-// Função para obter intensidade textual
+
 function getHeatIntensity(tempDiff) {
     if (tempDiff >= 3.0) return 'Muito Alta 🔥';
     if (tempDiff >= 2.5) return 'Alta 🔥';
@@ -806,7 +806,7 @@ function getHeatIntensity(tempDiff) {
     return 'Muito Baixa 🌿';
 }
 
-// Função para adicionar efeito de pulso
+
 function addPulseEffect(circle, tempDiff) {
     const pulseInterval = tempDiff > 2.5 ? 2000 : tempDiff > 1.5 ? 3000 : 4000;
     
@@ -825,7 +825,7 @@ function addPulseEffect(circle, tempDiff) {
     }, pulseInterval);
 }
 
-// Adicione este CSS para estilizar os popups
+
 const heatStyle = document.createElement('style');
 heatStyle.textContent = `
     .heat-popup {
@@ -891,7 +891,7 @@ heatStyle.textContent = `
 `;
 document.head.appendChild(heatStyle);
 
-// Mostrar informações da estação
+
 function showStationInfo(station) {
     const infoContent = document.querySelector('.info-content');
     
@@ -922,7 +922,7 @@ function showStationInfo(station) {
     document.getElementById('info-panel').classList.add('active');
 }
 
-// Modal de simulação
+
 function openSimulationModal() {
     document.getElementById('simulation-modal').classList.add('active');
 }
@@ -934,17 +934,17 @@ function closeSimulationModal() {
 async function runSimulation() {
     showNotification('Executando simulação...', 'info');
     
-    // Coletar parâmetros
+    
     const params = {
         green_areas: parseInt(document.getElementById('green-areas').value),
         public_transport: parseInt(document.getElementById('public-transport').value),
         pollution_reduction: parseInt(document.getElementById('pollution-reduction').value)
     };
 
-    // Simular processamento
+    
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Atualizar score de sustentabilidade
+    
     const newScore = Math.min(100, 72 + (params.green_areas * 0.1) + (params.public_transport * 0.15) + (params.pollution_reduction * 0.2));
     document.getElementById('sustainability-score').textContent = Math.round(newScore);
 
@@ -952,12 +952,12 @@ async function runSimulation() {
     showNotification('Simulação concluída! Score atualizado.', 'success');
 }
 
-// Gerar relatório
+
 async function generateReport() {
     try {
         showNotification('Gerando relatório...', 'info');
         
-        // Coletar dados atuais
+        
         const reportData = {
             cidade: "Brasília",
             data: new Date().toISOString(),
@@ -971,10 +971,10 @@ async function generateReport() {
             camadas_ativas: Array.from(activeLayers)
         };
 
-        // Simular geração de relatório
+        
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // Criar e baixar relatório
+        
         const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -989,12 +989,12 @@ async function generateReport() {
     }
 }
 
-// Iniciar comparação
+
 function startComparison() {
     showNotification('Funcionalidade de comparação em desenvolvimento.', 'info');
 }
 
-// Funções utilitárias
+
 function formatIndicatorName(key) {
     const names = {
         'densidade_construcao': 'Densidade Construtiva',
@@ -1008,7 +1008,7 @@ function formatIndicatorName(key) {
 }
 
 function showNotification(message, type = 'info') {
-    // Implementação básica de notificação
+    
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
@@ -1027,7 +1027,7 @@ function toggleFullscreen() {
     }
 }
 
-// Carregar dados mock para fallback
+
 function loadMockData() {
     const mockStations = [
         { 
@@ -1054,18 +1054,18 @@ function loadMockData() {
     });
 }
 
-// Inicialização
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Inicializando Dashboard Urbano...");
     
-    // Carregar cidade selecionada
+    
     const selectedCity = localStorage.getItem('selectedCity') || 'Brasília';
     
     initializeMap();
     initializeUIControls();
     loadCityData(selectedCity);
     
-    // Atualização automática a cada 5 minutos
+    
     setInterval(() => {
         const currentCity = document.getElementById('current-city').textContent;
         loadCityData(currentCity);
@@ -1073,12 +1073,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// Variáveis globais para análise
+
 let analysisMode = false;
 let drawControl = null;
 let currentAnalysisLayer = null;
 
-// Dados realistas para análise baseados em regiões de Brasília
+
 const brasiliaZones = {
     'Plano Piloto': {
         densidade_construcao: 85,
@@ -1161,7 +1161,7 @@ function toggleAreaAnalysis() {
 }
 
 function activateAreaAnalysis(btn, badge) {
-    // Criar controle de desenho
+    
     drawControl = new L.Control.Draw({
         draw: {
             polygon: {
@@ -1220,7 +1220,7 @@ function activateAreaAnalysis(btn, badge) {
     badge.textContent = 'ATIVO';
     badge.style.background = 'var(--success-color)';
 
-    // Eventos de desenho
+    
     map.on(L.Draw.Event.CREATED, handleDrawCreated);
     map.on(L.Draw.Event.EDITED, handleDrawEdited);
     map.on(L.Draw.Event.DELETED, handleDrawDeleted);
@@ -1229,18 +1229,18 @@ function activateAreaAnalysis(btn, badge) {
 }
 
 function deactivateAreaAnalysis(btn, badge) {
-    // Remover controle de desenho
+    
     if (drawControl) {
         map.removeControl(drawControl);
         drawControl = null;
     }
 
-    // Remover eventos
+    
     map.off(L.Draw.Event.CREATED);
     map.off(L.Draw.Event.EDITED);
     map.off(L.Draw.Event.DELETED);
 
-    // Limpar desenhos
+    
     drawnItems.clearLayers();
     currentAnalysisLayer = null;
 
@@ -1257,7 +1257,7 @@ function handleDrawCreated(e) {
     drawnItems.addLayer(layer);
     currentAnalysisLayer = layer;
     
-    // Estilo do polígono desenhado
+    
     layer.setStyle({
         color: '#2c5530',
         fillColor: '#2c5530',
@@ -1280,8 +1280,8 @@ function handleDrawDeleted(e) {
     currentAnalysisLayer = null;
 }
 
-// Analisar área desenhada
-// Modifique a função analyzeArea para debug
+
+
 async function analyzeArea(layer) {
     console.log('Análise de área iniciada...');
     const bounds = layer.getBounds();
@@ -1292,7 +1292,7 @@ async function analyzeArea(layer) {
         const analysis = await simulateAreaAnalysis(center, area);
         console.log('Análise concluída:', analysis);
         
-        // Debug dos feedbacks
+        
         const feedbacks = generateAreaFeedback();
         console.log('Feedbacks gerados:', feedbacks);
         
@@ -1303,22 +1303,22 @@ async function analyzeArea(layer) {
     }
 }
 
-// Análise realista baseada na localização
+
 async function performAreaAnalysis(center, area, layer) {
-    // Simular processamento
+    
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Determinar zona baseada na localização
+    
     const zone = determineZone(center);
     const baseData = brasiliaZones[zone] || brasiliaZones['Plano Piloto'];
     
-    // Calcular score baseado nos indicadores
+    
     const score = calculateSustainabilityScore(baseData);
     
-    // Gerar recomendações baseadas nos pontos fracos
+    
     const recomendacoes = generateRecommendations(baseData, zone);
     
-    // Análise de impacto ambiental
+    
     const impactoAmbiental = calculateEnvironmentalImpact(baseData, area);
     
     return {
@@ -1339,7 +1339,6 @@ function determineZone(center) {
     const lat = center.lat;
     const lng = center.lng;
     
-    // Lógica simplificada para determinar zona em Brasília
     if (lat > -15.75 && lng > -47.95) return 'Lago Sul';
     if (lat > -15.80 && lat < -15.75 && lng > -47.90) return 'Plano Piloto';
     if (lat < -15.80 && lng > -47.95) return 'Águas Claras';
@@ -1366,7 +1365,6 @@ function calculateSustainabilityScore(indicadores) {
     let score = 0;
     for (const [indicador, valor] of Object.entries(indicadores)) {
         if (pesos[indicador]) {
-            // Inverter alguns indicadores (menos é melhor)
             let valorAjustado = valor;
             if (['ruido_urbano', 'densidade_construcao', 'densidade_populacional'].includes(indicador)) {
                 valorAjustado = 100 - valor;
@@ -1391,7 +1389,6 @@ function generateRecommendations(indicadores, zona) {
     const recomendacoes = [];
     const weaknesses = [];
     
-    // Identificar pontos fracos
     if (indicadores.areas_verdes < 30) weaknesses.push('áreas verdes');
     if (indicadores.cobertura_vegetal < 25) weaknesses.push('cobertura vegetal');
     if (indicadores.qualidade_ar < 60) weaknesses.push('qualidade do ar');
@@ -1399,7 +1396,6 @@ function generateRecommendations(indicadores, zona) {
     if (indicadores.ruido_urbano > 70) weaknesses.push('poluição sonora');
     if (indicadores.densidade_construcao > 80) weaknesses.push('densidade construtiva');
     
-    // Gerar recomendações específicas
     if (weaknesses.includes('áreas verdes')) {
         recomendacoes.push(`Implementar parques lineares e aumentar áreas verdes em 20% na ${zona}`);
     }
@@ -1424,13 +1420,12 @@ function generateRecommendations(indicadores, zona) {
         recomendacoes.push(`Revisar plano diretor para controle de densidade`);
     }
     
-    // Recomendações gerais
     if (recomendacoes.length === 0) {
         recomendacoes.push(`Manter políticas de sustentabilidade e monitorar indicadores`);
         recomendacoes.push(`Expandir programas de eficiência energética na ${zona}`);
     }
     
-    return recomendacoes.slice(0, 5); // Limitar a 5 recomendações
+    return recomendacoes.slice(0, 5); 
 }
 
 function calculateEnvironmentalImpact(indicadores, area) {
@@ -1477,7 +1472,6 @@ function showAnalysisLoading() {
 
 
 
-// Gerar feedbacks aleatórios para a área selecionada
 function generateAreaFeedback() {
     const authors = ['Maria S.', 'João P.', 'Ana L.', 'Carlos M.', 'Fernanda R.', 'Roberto K.', 'Patrícia T.', 'Miguel A.'];
     const categories = {
@@ -1551,14 +1545,12 @@ function formatIndicatorName(key) {
     return names[key] || key;
 }
 
-// Função auxiliar para classes de sentimento
 function getSentimentClass(score) {
     if (score >= 70) return 'positive';
     if (score >= 50) return 'neutral';
     return 'negative';
 }
 
-// Função para formatar nomes dos indicadores (se ainda não existir)
 function formatIndicatorName(key) {
     const names = {
         'densidade_construcao': 'Densidade de Construção',
@@ -1577,29 +1569,23 @@ function showAnalysisResults(analysis, layer) {
     const panel = document.getElementById('analysis-panel');
     const results = document.getElementById('analysis-results');
 
-    // Mostrar loading
     results.innerHTML = createLoadingSpinner();
     panel.style.display = 'block';
 
-    // Simular carregamento (em produção, isso seria substituído pela chamada real da API)
     setTimeout(() => {
-        // Gerar feedbacks aleatórios para a área
         const feedbacks = generateAreaFeedback();
         
         results.innerHTML = createAnalysisContent(analysis, feedbacks, layer);
         
-        // Aplicar animação de entrada
         panel.style.animation = 'slideInRight 0.4s ease-out';
         
-        // Adicionar estilos e funcionalidades
         addAnalysisStyles();
         addButtonStyles();
         bindPopupEvents(analysis, feedbacks, layer);
         
-    }, 1500); // Simula 1.5 segundos de carregamento
+    }, 1500);
 }
 
-// Função para criar o spinner de loading
 function createLoadingSpinner() {
     return `
         <div class="loading-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center;">
@@ -1610,7 +1596,6 @@ function createLoadingSpinner() {
     `;
 }
 
-// Função para criar o conteúdo principal da análise
 function createAnalysisContent(analysis, feedbacks, layer) {
     const areaSize = layer ? (layer.getBounds().getNorthEast().distanceTo(layer.getBounds().getSouthWest()) / 1000).toFixed(2) : '0.00';
     
@@ -1836,7 +1821,6 @@ function createAnalysisContent(analysis, feedbacks, layer) {
     `;
 }
 
-// Função para vincular eventos do popup
 function bindPopupEvents(analysis, feedbacks, layer) {
     if (!layer) return;
     
@@ -1873,7 +1857,6 @@ function bindPopupEvents(analysis, feedbacks, layer) {
     layer.bindPopup(popupContent).openPopup();
 }
 
-// Função para adicionar estilos CSS melhorados
 function addAnalysisStyles() {
     if (!document.getElementById('analysis-styles')) {
         const style = document.createElement('style');
@@ -1946,7 +1929,6 @@ function addAnalysisStyles() {
     }
 }
 
-// Função para adicionar estilos dos botões
 function addButtonStyles() {
     if (!document.getElementById('button-styles')) {
         const style = document.createElement('style');
@@ -1980,7 +1962,6 @@ function addButtonStyles() {
     }
 }
 
-// Funções auxiliares
 function getScoreCategory(score) {
     if (score >= 90) return 'Excelente';
     if (score >= 80) return 'Muito Bom';
@@ -2005,7 +1986,6 @@ function formatIndicatorName(key) {
 
 
 
-// Funções auxiliares
 function getScoreClass(score) {
     if (score >= 80) return 'score-excellent';
     if (score >= 70) return 'score-good';
@@ -2080,10 +2060,8 @@ function updateMapPopup(analysis, layer) {
     layer.openPopup();
 }
 
-// Funções de exportação e simulação
 function exportAnalysis() {
     showNotification('Gerando relatório em PDF...', 'info');
-    // Implementação de exportação seria adicionada aqui
     setTimeout(() => {
         showNotification('Relatório exportado com sucesso!', 'success');
     }, 2000);
@@ -2091,14 +2069,13 @@ function exportAnalysis() {
 
 function simulateImprovements() {
     showNotification('Abrindo simulador de melhorias...', 'info');
-    // Abrir modal de simulação
+    
     document.getElementById('simulation-modal').classList.add('active');
 }
 
 
 
 
-// Função auxiliar para classes de sentimento
 function getSentimentClass(score) {
     if (score >= 70) return 'positive';
     if (score >= 50) return 'neutral';
@@ -2112,14 +2089,12 @@ function getSentimentClass(score) {
 
 
 
-// Teste rápido - execute esta função no console do navegador
 function testarFeedbacks() {
     console.log('Testando geração de feedbacks...');
     
     const feedbacks = generateAreaFeedback();
     console.log('Feedbacks gerados:', feedbacks);
     
-    // Simular abertura do painel
     const analysis = {
         score_sustentabilidade: 78,
         indicadores: {
@@ -2146,21 +2121,18 @@ function testarFeedbacks() {
     console.log('Painel deve estar aberto com os feedbacks!');
 }
 
-// No console do navegador, digite: testarFeedbacks()
 
 
 
 
 
-// Função de teste - adicione isso no final do dashboard.js
 function testarFeedbacks() {
     console.log('=== TESTANDO FEEDBACKS ===');
     
-    // Testar geração de feedbacks
+    
     const feedbacks = generateAreaFeedback();
     console.log('Feedbacks gerados:', feedbacks);
     
-    // Simular dados de análise
     const analysis = {
         score_sustentabilidade: 78,
         indicadores: {
@@ -2177,7 +2149,6 @@ function testarFeedbacks() {
         ]
     };
     
-    // Simular uma layer
     const mockLayer = {
         getBounds: () => ({
             getNorthEast: () => ({ distanceTo: () => 2.5 }),
@@ -2185,12 +2156,12 @@ function testarFeedbacks() {
         })
     };
     
-    // Mostrar resultados
+    
     showAnalysisResults(analysis, mockLayer);
     
     console.log('✅ Painel de análise deve estar aberto com feedbacks!');
     console.log('👉 Procure a seção "💬 Feedback dos Moradores" no painel à direita');
 }
 
-// Torna a função global para poder testar no console
+
 window.testarFeedbacks = testarFeedbacks;

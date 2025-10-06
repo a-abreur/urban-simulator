@@ -6,13 +6,11 @@ from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
-CORS(app)  # Agora correto!
+CORS(app) 
 
-# Configurações - USE SUAS PRÓPRIAS CHAVES (grátis)
-OPENWEATHER_API_KEY = "sua_chave_gratuita_aqui"  # Obtenha em: https://openweathermap.org/api
+OPENWEATHER_API_KEY = "sua_chave_gratuita_aqui"  
 OPENAQ_BASE_URL = "https://api.openaq.org/v2"
 
-# Dados mockados para Brasília (caso as APIs falhem)
 DADOS_MOCK_BRASILIA = {
     "clima": {
         "cidade": "Brasília",
@@ -67,38 +65,9 @@ def home():
 
 @app.route('/api/clima/<cidade>')
 def get_clima(cidade):
-    """Busca dados climáticos em tempo real"""
     try:
-        # Para MVP, usamos dados mockados de Brasília
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify(DADOS_MOCK_BRASILIA["clima"])
-        
-        # Se tiver chave da API, descomente abaixo:
-        """
-        geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={cidade}&limit=1&appid={OPENWEATHER_API_KEY}"
-        geo_response = requests.get(geo_url)
-        geo_data = geo_response.json()
-        
-        if not geo_data:
-            return jsonify({"error": "Cidade não encontrada"}), 404
-            
-        lat = geo_data[0]['lat']
-        lon = geo_data[0]['lon']
-        
-        weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric&lang=pt_br"
-        weather_response = requests.get(weather_url)
-        weather_data = weather_response.json()
-        
-        return jsonify({
-            "cidade": cidade,
-            "temperatura": weather_data['main']['temp'],
-            "umidade": weather_data['main']['humidity'],
-            "pressao": weather_data['main']['pressure'],
-            "vento": weather_data['wind']['speed'],
-            "descricao": weather_data['weather'][0]['description'],
-            "coordenadas": {"lat": lat, "lon": lon}
-        })
-        """
         
         return jsonify({"error": "Cidade não disponível no MVP. Use 'Brasília'"}), 404
         
@@ -107,9 +76,7 @@ def get_clima(cidade):
 
 @app.route('/api/poluicao/<cidade>')
 def get_poluicao(cidade):
-    """Busca dados de qualidade do ar"""
     try:
-        # Para MVP, usamos dados mockados
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
                 "cidade": cidade,
@@ -117,24 +84,6 @@ def get_poluicao(cidade):
                 "total_registros": len(DADOS_MOCK_BRASILIA["poluentes"])
             })
         
-        # Código original com OpenAQ (pode ser restaurado depois)
-        """
-        url = f"{OPENAQ_BASE_URL}/latest?city={cidade}&limit=10"
-        response = requests.get(url)
-        data = response.json()
-        
-        poluentes = []
-        for result in data.get('results', []):
-            for measurement in result.get('measurements', []):
-                poluentes.append({
-                    "parametro": measurement['parameter'],
-                    "valor": measurement['value'],
-                    "unidade": measurement['unit'],
-                    "localizacao": result['location'],
-                    "coordenadas": result['coordinates'],
-                    "ultima_atualizacao": measurement['lastUpdated']
-                })
-        """
         
         return jsonify({"error": "Cidade não disponível no MVP. Use 'Brasília'"}), 404
         
@@ -143,7 +92,6 @@ def get_poluicao(cidade):
 
 @app.route('/api/estacoes/<cidade>')
 def get_estacoes(cidade):
-    """Busca estações de monitoramento disponíveis"""
     try:
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
@@ -152,23 +100,7 @@ def get_estacoes(cidade):
                 "total_estacoes": len(DADOS_MOCK_BRASILIA["estacoes"])
             })
         
-        # Código original com OpenAQ
-        """
-        url = f"{OPENAQ_BASE_URL}/locations?city={cidade}&limit=50"
-        response = requests.get(url)
-        data = response.json()
-        
-        estacoes = []
-        for result in data.get('results', []):
-            estacoes.append({
-                "nome": result['location'],
-                "cidade": result['city'],
-                "pais": result['country'],
-                "coordenadas": result['coordinates'],
-                "parametros": result['parameters'],
-                "contagem_medicoes": result['count']
-            })
-        """
+    
         
         return jsonify({"error": "Cidade não disponível no MVP. Use 'Brasília'"}), 404
         
@@ -177,15 +109,14 @@ def get_estacoes(cidade):
 
 @app.route('/api/indicadores/<cidade>')
 def get_indicadores_urbanos(cidade):
-    """Indicadores urbanos consolidados"""
     if cidade.lower() in ["brasília", "brasilia"]:
         return jsonify({
             "cidade": "Brasília",
             "indicadores": {
                 "qualidade_ar": "Moderada",
                 "indice_poluicao": 68,
-                "densidade_populacional": 480.8,  # hab/km²
-                "area_verde_per_capita": 94.4,    # m²/hab
+                "densidade_populacional": 480.8,
+                "area_verde_per_capita": 94.4,  
                 "transporte_publico": 75,
                 "infraestrutura_cicloviaria": 42
             },
@@ -200,10 +131,8 @@ def get_indicadores_urbanos(cidade):
 
 
 
-# Novas rotas para o backend
 @app.route('/api/mapas/<tipo>')
 def get_mapas(tipo):
-    """Retorna diferentes tipos de mapas base"""
     mapas = {
         "satelite": {
             "url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
@@ -226,13 +155,11 @@ def get_mapas(tipo):
 
 @app.route('/api/transito/<cidade>')
 def get_transito(cidade):
-    """Dados de tráfego em tempo real (usando OpenStreetMap/Overpass API)"""
     try:
-        # Para Brasília - dados simulados
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
                 "cidade": cidade,
-                "nivel_congestionamento": 65,  # 0-100%
+                "nivel_congestionamento": 65, 
                 "principais_vias": [
                     {"via": "Eixo Monumental", "congestionamento": 75, "velocidade_media": 25},
                     {"via": "W3 Sul", "congestionamento": 80, "velocidade_media": 20},
@@ -248,7 +175,6 @@ def get_transito(cidade):
 
 @app.route('/api/temperatura/<cidade>')
 def get_ilha_calor(cidade):
-    """Análise de ilhas de calor urbanas"""
     try:
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
@@ -273,7 +199,6 @@ def get_ilha_calor(cidade):
 
 @app.route('/api/recursos-naturais/<cidade>')
 def get_recursos_naturais(cidade):
-    """Recursos naturais e áreas verdes"""
     try:
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
@@ -284,7 +209,7 @@ def get_recursos_naturais(cidade):
                     {"nome": "Parque Nacional", "area_ha": 30000, "tipo": "protegida"},
                     {"nome": "Lago Paranoá", "area_ha": 4000, "tipo": "recurso_hidrico"}
                 ],
-                "cobertura_vegetal": 45,  # porcentagem
+                "cobertura_vegetal": 45,  
                 "qualidade_ar": "moderada",
                 "recursos_hidricos": [
                     {"nome": "Lago Paranoá", "capacidade": "4000 ha", "uso": "recreacao/energia"},
@@ -297,7 +222,6 @@ def get_recursos_naturais(cidade):
 
 @app.route('/api/saneamento-energia/<cidade>')
 def get_saneamento_energia(cidade):
-    """Indicadores de saneamento e energia"""
     try:
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
@@ -309,7 +233,7 @@ def get_saneamento_energia(cidade):
                     "coleta_seletiva": 45
                 },
                 "energia": {
-                    "consumo_per_capita": 1800,  # kWh/ano
+                    "consumo_per_capita": 1800,  
                     "fontes_renovaveis": 35,
                     "eficiencia_energetica": 65,
                     "distribuicao": [
@@ -331,13 +255,11 @@ def get_saneamento_energia(cidade):
 
 @app.route('/api/analise-area', methods=['POST'])
 def analise_area():
-    """Gera relatório de análise para uma área específica"""
     try:
         data = request.json
         coordenadas = data.get('coordenadas')
-        raio = data.get('raio', 1000)  # metros
+        raio = data.get('raio', 1000)
         
-        # Simulação de análise
         analise = {
             "area_analisada": f"Raio de {raio}m",
             "coordenadas_centro": coordenadas,
@@ -372,7 +294,7 @@ def analise_area():
 
 @app.route('/api/feedback-populacao/<cidade>')
 def get_feedback_populacao(cidade):
-    """Feedback e percepção da população (dados simulados)"""
+
     try:
         if cidade.lower() in ["brasília", "brasilia"]:
             return jsonify({
